@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاسبة النفس — على منهج الإمام الغزالي</title>
+<meta name="theme-color" content="#0d261e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="محاسبة النفس">
+<meta name="application-name" content="محاسبة النفس">
+<meta name="description" content="تطبيق يومي لمحاسبة النفس على منهج الإمام الغزالي في المراقبة والمحاسبة.">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { islamic: {
+      50:'#f4f7f4',100:'#e2eae2',200:'#c3d5c3',
+      600:'#1b4d3e',700:'#14382d',800:'#0d261e',900:'#08150f',
+      gold:'#d4af37',lightGold:'#f9f3d9'
+    }},
+    fontFamily: { cairo:['Cairo','sans-serif'], amiri:['Amiri','serif'] }
+  }}
+}
+</script>
+<style>
+  body { font-family:'Cairo',sans-serif; background:#f8fafc; -webkit-tap-highlight-color:transparent; }
+  .amiri-font { font-family:'Amiri',serif; }
+  .tab-scroll { scrollbar-width:none; }
+  .tab-scroll::-webkit-scrollbar { display:none; }
+  .fade-in { animation: fadeIn .25s ease-out; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+  .chart-bar { transition: height .4s ease; }
+  .hour-cell { transition: background .15s, color .15s; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+
+<header class="bg-islamic-800 text-white shadow-lg sticky top-0 z-50 border-b-4 border-islamic-gold">
+  <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+    <div>
+      <h1 class="text-lg font-bold font-amiri text-islamic-gold">محاسبة النفس</h1>
+      <p class="text-[11px] text-emerald-200">منهج الإمام الغزالي في المراقبة والمحاسبة</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="bg-islamic-700 px-2.5 py-1 rounded-full text-xs text-islamic-gold border border-islamic-gold/30 flex items-center gap-1 font-bold">
+        🔥 <span id="streak-count">0</span>
+      </div>
+      <div id="date-badge" class="bg-islamic-700 px-2.5 py-1 rounded-full text-[10px] text-emerald-100 border border-islamic-gold/20 hidden sm:block">اليوم</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-md mx-auto px-4 mt-4 space-y-4">
+
+<section class="bg-gradient-to-br from-islamic-600 to-islamic-800 text-white rounded-2xl p-4 shadow-md relative overflow-hidden">
+  <div class="absolute -left-4 -bottom-4 text-islamic-700 opacity-20 font-amiri text-8xl pointer-events-none">محاسبة</div>
+  <div class="flex justify-between items-start mb-1">
+    <h3 class="text-islamic-gold font-bold text-xs">وقفة اليوم:</h3>
+    <button onclick="rotateQuote(true)" class="text-xs text-emerald-100 bg-islamic-700/70 active:bg-islamic-gold active:text-islamic-900 px-3 py-2 rounded-full border border-islamic-gold/40 transition-colors">↻ اقتباس آخر</button>
+  </div>
+  <p id="daily-quote" class="amiri-font text-[15px] italic text-emerald-100 leading-relaxed mt-1"></p>
+</section>
+
+<div class="grid grid-cols-4 gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 text-[11px] font-semibold text-center">
+  <button onclick="switchTab('musharatah')" id="btn-musharatah" class="py-2.5 rounded-lg transition-all text-center bg-islamic-600 text-white shadow-sm font-bold">1.المشارطة</button>
+  <button onclick="switchTab('muraqabah')"  id="btn-muraqabah"  class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">2.المراقبة</button>
+  <button onclick="switchTab('muhasabah')"  id="btn-muhasabah"  class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">3.المحاسبة</button>
+  <button onclick="switchTab('muaqabah')"   id="btn-muaqabah"   class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">4.المعاقبة</button>
+</div>
+<div class="grid grid-cols-4 gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 text-[11px] font-semibold text-center">
+  <button onclick="switchTab('mujahadah')" id="btn-mujahadah" class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">5.المجاهدة</button>
+  <button onclick="switchTab('muatabah')"  id="btn-muatabah"  class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">6.المعاتبة</button>
+  <button onclick="switchTab('tools')"     id="btn-tools"     class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">🧮 أدوات</button>
+  <button onclick="switchTab('library')"   id="btn-library"   class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">📚 الدرر</button>
+</div>
+<button onclick="switchTab('history')" id="btn-history" class="w-full py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm text-[12px] font-semibold text-slate-700 hover:bg-slate-50 transition-all">
+  📊 السجل والنسخ الاحتياطي والإشعارات
+</button>
+
+<!-- ✅ رقعة ① : شريط التثبيت خارج أي تبويب مخفي -->
+<div id="pwa-install-banner" class="hidden bg-gradient-to-r from-islamic-600 to-islamic-800 text-white p-3 rounded-xl justify-between items-center text-xs">
+  <div><span class="font-bold block text-islamic-gold">ثبّت التطبيق</span><span class="text-[10px]">من الشاشة الرئيسية</span></div>
+  <button id="pwa-install-btn" class="bg-islamic-gold text-islamic-900 font-bold px-3 py-1.5 rounded-lg text-xs">تثبيت</button>
+</div>
+
+<!-- 1. المشارطة -->
+<div id="tab-musharatah" class="tab-content space-y-4 fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الأول</span>
+      <h2 class="font-bold text-islamic-800 text-sm">مشارطة الصباح</h2>
+    </div>
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">«رأس مالك العمر، وهذا يوم جديد قد أمهلك الله فيه.. فاشرط على نفسك صيانة أعضائك السبعة.»</p>
+    <div class="space-y-3">
+      <div class="bg-islamic-50 p-3 rounded-xl border border-emerald-100">
+        <label for="daily-intention" class="block text-xs font-bold text-islamic-800 mb-1">نية اليوم:</label>
+        <input type="text" id="daily-intention" placeholder="إخلاص النية، صلة رحم، ترك الغيبة..." class="w-full text-sm p-2.5 rounded-lg border border-slate-300 bg-white">
+      </div>
+      <h4 class="text-xs font-bold text-slate-700">معاهدة الأعضاء السبعة:</h4>
+      <div class="space-y-2 text-xs">
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="العين"><span><b>العين:</b> غض البصر.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="اللسان"><span><b>اللسان:</b> تركه عن الغيبة والكذب.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="البطن"><span><b>البطن:</b> الحلال والبعد عن الشبهات.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="الفرج"><span><b>الفرج:</b> الحفظ والعفة.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="اليد"><span><b>اليد:</b> قصرها على ما يرضي الله.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="الرجل"><span><b>الرجل:</b> السعي في الطاعة.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="القلب"><span><b>القلب:</b> مراقبة الخواطر والإخلاص.</span></label>
+      </div>
+      <button onclick="saveMusharatah()" class="w-full bg-islamic-600 hover:bg-islamic-700 text-white font-bold py-3 rounded-xl text-sm shadow-md">توثيق المشارطة</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. المراقبة -->
+<div id="tab-muraqabah" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الثاني</span>
+      <h2 class="font-bold text-islamic-800 text-sm">مراقبة القلب</h2>
+    </div>
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">«حقيقة المراقبة: ملاحظة الرقيب، وانصراف الهم إليه.»</p>
+    <div class="bg-emerald-50 rounded-xl p-3 mb-3 border border-emerald-200">
+      <h4 class="text-xs font-bold text-emerald-900 mb-2">درجات المراقبة (من الكتاب):</h4>
+      <div class="text-[12px] text-emerald-800 space-y-1">
+        <p><b>1. مراقبة المقربين:</b> استغراق القلب بالتعظيم حتى لا يبقى متسع لغير الله.</p>
+        <p><b>2. مراقبة الورعين:</b> غلبة الحياء واستشعار الاطلاع في كل حركة وسكنة.</p>
+      </div>
+    </div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+      <span class="text-xs font-bold text-islamic-800 block mb-2">سجل لحظات اليقظة:</span>
+      <textarea id="vigilance-note" placeholder="موقف شعرت فيه بمراقبة الله لك..." class="w-full text-sm p-3 rounded-lg border border-emerald-200 h-20 bg-white"></textarea>
+      <button onclick="saveVigilanceNote()" class="mt-2 bg-islamic-600 text-white px-4 py-2 rounded-lg text-xs font-bold">إضافة للسجل</button>
+      <div id="vigilance-log" class="mt-3 space-y-1 text-[12px] text-emerald-800"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. المحاسبة -->
+<div id="tab-muhasabah" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الثالث</span>
+      <h2 class="font-bold text-islamic-800 text-sm">محاسبة المساء</h2>
+    </div>
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">«افتح خزائن أوقاتك الأربع والعشرين، وتفقد الدواوين الثلاثة.»</p>
+    <div class="space-y-4 text-xs">
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-slate-700">خزائن الساعات الـ24:</span>
+          <span class="text-[10px] text-slate-500" id="hours-progress">0 / 24 مصنّفة</span>
+        </div>
+        <p class="text-[11px] text-slate-500">اضغط على الساعة: طاعة ← معصية ← غفلة ← إلغاء.</p>
+        <div class="space-y-1" id="hours-grid-parent">
+          <div class="text-[10px] font-bold text-slate-500 mt-1">الليل والسحر (00–05)</div>
+          <div class="grid grid-cols-6 gap-1" data-period="0"></div>
+          <div class="text-[10px] font-bold text-slate-500 mt-2">الصباح والضحى (06–11)</div>
+          <div class="grid grid-cols-6 gap-1" data-period="1"></div>
+          <div class="text-[10px] font-bold text-slate-500 mt-2">الظهر والعصر (12–17)</div>
+          <div class="grid grid-cols-6 gap-1" data-period="2"></div>
+          <div class="text-[10px] font-bold text-slate-500 mt-2">المغرب والعشاء (18–23)</div>
+          <div class="grid grid-cols-6 gap-1" data-period="3"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mt-2 text-[11px]">
+          <div class="bg-emerald-100 p-2 rounded-lg text-center"><span class="block font-bold text-emerald-900 text-base" id="count-light">0</span><span class="text-emerald-700">طاعة</span></div>
+          <div class="bg-rose-100 p-2 rounded-lg text-center"><span class="block font-bold text-rose-900 text-base" id="count-dark">0</span><span class="text-rose-700">معصية</span></div>
+          <div class="bg-amber-100 p-2 rounded-lg text-center"><span class="block font-bold text-amber-900 text-base" id="count-empty">0</span><span class="text-amber-700">غفلة</span></div>
+        </div>
+      </div>
+      <div class="bg-islamic-50 p-3 rounded-xl border border-emerald-200 space-y-3">
+        <h4 class="font-bold text-islamic-800">الدواوين الثلاثة:</h4>
+        <div><label for="diwan-why" class="block font-semibold text-slate-700 mb-1">1. ديوان «لِمَ»:</label><input type="text" id="diwan-why" placeholder="لماذا فعلت؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
+        <div><label for="diwan-how" class="block font-semibold text-slate-700 mb-1">2. ديوان «كيف»:</label><input type="text" id="diwan-how" placeholder="بعلم أم بجهل؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
+        <div><label for="diwan-whom" class="block font-semibold text-slate-700 mb-1">3. ديوان «لِمَنْ»:</label><input type="text" id="diwan-whom" placeholder="لله خالصًا أم لمراءاة؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
+        <button onclick="saveMuhasabah()" class="w-full bg-islamic-600 text-white font-bold py-2.5 rounded-lg">حفظ المحاسبة</button>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+        <span class="text-xs font-bold text-slate-700 block mb-1">نسبة ساعات الطاعة المُسجَّلة:</span>
+        <div class="text-3xl font-bold text-islamic-700" id="day-score">—</div>
+        <div class="text-[10px] text-slate-500 mt-1" id="day-score-label">لم تُصنّف أي ساعة بعد</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. المعاقبة -->
+<div id="tab-muaqabah" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الرابع</span>
+      <h2 class="font-bold text-islamic-800 text-sm">المعاقبة</h2>
+    </div>
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">المقصود: حرمان النفس من بعض المباح على وجه التأديب، لا إلزامها بما يؤذيها.</p>
+    <div class="space-y-3 text-xs">
+      <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl space-y-2">
+        <h4 class="font-bold text-amber-900"><label for="correction-action">خطة المعاقبة:</label></h4>
+        <textarea id="correction-action" placeholder="صيام غد، صدقة، منع نفسي من أمر مباح..." class="w-full text-sm p-3 rounded-lg border border-amber-300 h-24 bg-white"></textarea>
+        <button onclick="saveCorrection()" class="w-full bg-amber-700 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-amber-800">اعتماد خطة المعاقبة</button>
+        <div id="correction-saved" class="text-[11px] text-amber-900 hidden"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. المجاهدة -->
+<div id="tab-mujahadah" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الخامس</span>
+      <h2 class="font-bold text-islamic-800 text-sm">المجاهدة</h2>
+    </div>
+    <div class="space-y-3 text-xs">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+        <h4 class="font-bold text-emerald-900 mb-2">مقومات المجاهدة:</h4>
+        <div id="mujahadah-task-list" class="space-y-2">
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="الفرائض"><span><b>الفرائض الخمس في أوقاتها</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="القيام"><span><b>قيام الليل أو الوتر</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="القرآن"><span><b>ورد قرآني يومي</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="الذكر"><span><b>أذكار الصباح والمساء</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="الصيام"><span><b>صيام تطوع</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="الصمت"><span><b>حفظ اللسان والصمت</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="الصدقة"><span><b>صدقة ولو قليلة</b></span></label>
+          <label class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer"><input type="checkbox" class="mujahadah-check w-4 h-4 text-emerald-600 rounded" data-task="الاستغفار"><span><b>100 استغفار</b></span></label>
+        </div>
+      </div>
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+        <span class="text-xs font-bold text-slate-700 block mb-1">درجة المجاهدة:</span>
+        <div class="text-3xl font-bold text-islamic-700" id="mujahadah-score">0/8</div>
+        <div class="w-full bg-slate-200 rounded-full h-2 mt-2"><div id="mujahadah-bar" class="bg-islamic-600 h-2 rounded-full transition-all" style="width:0%"></div></div>
+      </div>
+      <button onclick="saveMujahadah()" class="w-full bg-islamic-600 hover:bg-islamic-700 text-white font-bold py-3 rounded-xl text-sm shadow-md">حفظ مجاهدة اليوم</button>
+
+      <div class="flex gap-2">
+        <input type="text" id="new-task-input" maxlength="80" placeholder="مهمة جديدة..." aria-label="نصّ المهمة الجديدة" class="flex-1 text-sm p-2 rounded-lg border border-emerald-300 bg-white">
+        <button id="add-task-btn" onclick="addCustomTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md whitespace-nowrap">➕ إضافة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. المعاتبة -->
+<div id="tab-muatabah" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام السادس</span>
+      <h2 class="font-bold text-islamic-800 text-sm">المعاتبة</h2>
+    </div>
+    <div class="space-y-3 text-xs">
+      <div class="bg-rose-50 border border-rose-200 rounded-xl p-3">
+        <h4 class="font-bold text-rose-900 mb-2">أسئلة المعاتبة:</h4>
+        <div class="space-y-2">
+          <label class="flex items-start gap-2 p-2 bg-white rounded-lg border border-rose-100 cursor-pointer"><input type="checkbox" class="muatabah-check mt-0.5 w-4 h-4 text-rose-600 rounded" data-id="q1" aria-label="سؤال 1"><span>يا نفسُ؛ تدّعين الحكمة وأنت أشد الناس غباوة في حق خالقك؟!</span></label>
+          <label class="flex items-start gap-2 p-2 bg-white rounded-lg border border-rose-100 cursor-pointer"><input type="checkbox" class="muatabah-check mt-0.5 w-4 h-4 text-rose-600 rounded" data-id="q2" aria-label="سؤال 2"><span>يا نفسُ؛ كيف تعصين ربك وأنت تعلمين أن الله يراك؟</span></label>
+          <label class="flex items-start gap-2 p-2 bg-white rounded-lg border border-rose-100 cursor-pointer"><input type="checkbox" class="muatabah-check mt-0.5 w-4 h-4 text-rose-600 rounded" data-id="q3" aria-label="سؤال 3"><span>يا نفسُ؛ أرأيتِ لو أن عبدًا فعل معك معشار ما تفعلينه مع الله؟!</span></label>
+          <label class="flex items-start gap-2 p-2 bg-white rounded-lg border border-rose-100 cursor-pointer"><input type="checkbox" class="muatabah-check mt-0.5 w-4 h-4 text-rose-600 rounded" data-id="q4" aria-label="سؤال 4"><span>يا نفسُ؛ تدّخرين لغيرك وتنسين أن الموت آت بغتة؟!</span></label>
+        </div>
+      </div>
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <h4 class="font-bold text-slate-700 mb-2"><label for="muatabah-note">دفتر المعاتبة:</label></h4>
+        <textarea id="muatabah-note" placeholder="ماذا عاتبتَ نفسك عليه اليوم؟" class="w-full text-sm p-3 rounded-lg border border-slate-300 h-24 bg-white"></textarea>
+        <button onclick="saveMuatabah()" class="mt-2 w-full bg-rose-700 hover:bg-rose-800 text-white py-2.5 rounded-lg font-bold text-xs">حفظ المعاتبة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. أدوات -->
+<div id="tab-tools" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <h2 class="font-bold text-islamic-800 text-sm mb-3">🧮 أدوات مساعدة — تواريخ النفس</h2>
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">تقدير تقريبي يبدأ من 1 يناير لسنة الميلاد لأن التطبيق لا يطلب اليوم والشهر؛ وعدد الأنفاس افتراضي على أساس 12 نفسًا في الدقيقة. «ساعات الغفلة المسجّلة» تخص السجل المحفوظ فقط، ويحتفظ التطبيق بآخر 90 يومًا.</p>
+    <div class="grid grid-cols-2 gap-2 text-[12px]">
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center"><div class="font-bold text-islamic-700 text-lg" id="days-lived">—</div><div class="text-slate-500">يوم</div></div>
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center"><div class="font-bold text-islamic-700 text-lg" id="hours-lived">—</div><div class="text-slate-500">ساعة</div></div>
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center"><div class="font-bold text-islamic-700 text-lg" id="breaths-lived">—</div><div class="text-slate-500">نَفَس</div></div>
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center"><div class="font-bold text-rose-700 text-lg" id="hours-wasted">—</div><div class="text-slate-500">ساعة غفلة مسجّلة</div></div>
+    </div>
+    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-[12px]">
+      <p class="text-amber-900 font-bold mb-1">🕰️ حكاية وعظية منقولة (تحتاج إلى توثيق):</p>
+      <p class="text-amber-800 amiri-font text-[14px] leading-relaxed">قال توبة بن الصِّمَّة: «حسبتُ عمري فوجدته ستين سنة، فحسبتُ أيامها فإذا هي واحدٌ وعشرون ألفًا وخمسمئة يوم...»</p>
+      <p class="text-[10px] text-amber-700 mt-2">يُراجع نص الحكاية ومصدرها؛ فالعدد المذكور لا يطابق حاصل 60 × 365، ولا يُعتمد بوصفه حسابًا دقيقًا.</p>
+    </div>
+    <div class="mt-3 space-y-2 text-xs">
+      <label for="birth-year" class="block font-bold text-slate-700">سنة ميلادك:</label>
+      <input type="number" id="birth-year" placeholder="1995" min="1900" max="2100" class="w-full p-2.5 rounded border border-slate-300 bg-white text-sm">
+      <button onclick="calculateLife(true)" class="w-full bg-islamic-600 hover:bg-islamic-700 text-white py-2.5 rounded-lg font-bold">احسب تواريخ نفسي</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. المكتبة -->
+<div id="tab-library" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <h2 class="font-bold text-islamic-800 text-sm mb-3">📚 مكتبة الدرر</h2>
+    <input type="text" id="library-search" oninput="filterLibrary()" placeholder="🔍 ابحث..." aria-label="ابحث في مكتبة الدرر" class="w-full text-sm p-2.5 rounded-lg border border-slate-300 mb-3 bg-white">
+    <div class="flex gap-1 overflow-x-auto tab-scroll mb-3 pb-1">
+      <button onclick="filterCategory('all')"    class="cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-islamic-600 text-white" data-cat="all">الكل</button>
+      <button onclick="filterCategory('quran')"  class="cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" data-cat="quran">📖 آيات</button>
+      <button onclick="filterCategory('hadith')" class="cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" data-cat="hadith">🕌 أحاديث</button>
+      <button onclick="filterCategory('salaf')"  class="cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" data-cat="salaf">💎 السلف</button>
+      <button onclick="filterCategory('story')"  class="cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" data-cat="story">📜 قصص</button>
+      <button onclick="filterCategory('poem')"   class="cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" data-cat="poem">🖋️ مناجاة</button>
+    </div>
+    <div id="library-container" class="space-y-2 text-xs"></div>
+    <p class="text-[10px] text-slate-500 mt-3 leading-relaxed">تنبيه توثيقي: المكتبة تجمع آيات وأحاديث وآثارًا وحكايات متفاوتة الثبوت. يلزم توثيق كل نسبة ومقابلة النص على مصدر موثوق قبل النشر. الحكايات الوعظية — ولا سيما ما يذكر حرمان النفس أو إجهادها — ليست أحكامًا شرعية ولا توصيات يُقتدى بها دون علم.</p>
+  </div>
+</div>
+
+<!-- 9. السجل -->
+<div id="tab-history" class="tab-content space-y-4 hidden fade-in">
+  <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-islamic-800 text-sm">📊 السجل والرسوم</h2>
+      <span class="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-600">محلي</span>
+    </div>
+    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+      <h4 class="font-bold text-islamic-700 text-xs">تطور الأداء (آخر 7 أيام):</h4>
+      <div id="analytics-chart" class="h-32 flex items-end gap-1.5 pt-4 px-2 border-b border-slate-300"></div>
+      <div class="flex justify-between text-[9px] text-slate-500 px-1"><span>الأقدم</span><span>اليوم</span></div>
+      <p class="text-[10px] text-slate-500 text-center">العمود الذهبي = اليوم، الأخضر = أيام مكتملة.</p>
+    </div>
+    <div id="history-container" class="space-y-2 text-xs"></div>
+
+    <div class="border-t pt-3 space-y-2">
+      <h4 class="font-bold text-islamic-800 text-xs">🔔 التذكير</h4>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-[10px] text-amber-900 leading-relaxed mb-2">
+        <b>⚠️ تنبيه تقني صريح:</b> الإشعارات هنا تعمل <b>فقط عندما يكون التطبيق مفتوحًا</b> (أو في الخلفية القريبة).
+        <b>لا تعمل عندما يكون التطبيق مغلقًا تمامًا</b> — هذا قيد في تطبيقات الويب المثبّتة (PWA)، وليس خللًا في التطبيق.
+      </div>
+      <p class="text-[10px] text-slate-500 leading-relaxed mb-2">
+        <b>على iPhone/iPad:</b> يتطلب تثبيت التطبيق على الشاشة الرئيسية (iOS 16.4+) حتى تعمل الإشعارات.
+        افتح التطبيق من Safari ← زر المشاركة ← «إضافة إلى الشاشة الرئيسية».
+      </p>
+      <p class="text-[10px] text-slate-500 leading-relaxed">
+        تذكيرات داخلية تُطلق عند فتح التطبيق أو رجوعه للمقدمة. يلزم منح الإذن مرّة واحدة.
+      </p>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label for="notif-morning" class="block text-[10px] text-slate-600 mb-1">وقت المشارطة:</label><input type="time" id="notif-morning" value="05:30" class="w-full text-sm p-2 rounded border border-slate-300 bg-white"></div>
+        <div><label for="notif-evening" class="block text-[10px] text-slate-600 mb-1">وقت المحاسبة:</label><input type="time" id="notif-evening" value="21:00" class="w-full text-sm p-2 rounded border border-slate-300 bg-white"></div>
+      </div>
+      <button onclick="saveNotificationSettings()" class="w-full bg-islamic-600 text-white py-2 rounded-lg text-xs font-bold">تفعيل التذكير</button>
+      <div id="notif-status" class="text-[10px] text-center text-slate-500"></div>
+    </div>
+
+    <div class="border-t pt-3 space-y-2">
+      <h4 class="font-bold text-islamic-800 text-xs">النسخ الاحتياطي</h4>
+      <p class="text-[10px] text-slate-500">بياناتك محفوظة محليًا فقط. صدّرها دوريًا.</p>
+      <div class="flex gap-2">
+        <button onclick="exportData()" class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-semibold">📤 تصدير</button>
+        <button onclick="document.getElementById('import-file').click()" class="flex-1 bg-islamic-600 text-white py-2 rounded-lg text-xs font-semibold">📥 استيراد</button>
+        <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+      </div>
+    </div>
+
+    <div class="border-t pt-3 text-[10px] text-slate-500 leading-relaxed">
+      <b>الخصوصية:</b> كل بياناتك تُخزَّن في متصفح جهازك فقط.
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ═══════════════════════ أدوات آمنة ═══════════════════════ */
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function isValidISODate(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [y, m, d] = s.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
+}
+
+function coerceDate(s) {
+  if (isValidISODate(s)) return s;
+  if (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(s)) {
+    // Reject impossible source dates before Date can normalize them (e.g. Feb 31).
+    if (!isValidISODate(s.slice(0, 10))) return null;
+    const d = new Date(s);
+    if (!Number.isNaN(d.getTime())) {
+      const local = new Date(d.getTime());
+      const iso = local.getFullYear() + '-' + String(local.getMonth()+1).padStart(2,'0') + '-' + String(local.getDate()).padStart(2,'0');
+      return isValidISODate(iso) ? iso : null;
+    }
+  }
+  return null;
+}
+
+function isValidTime(s) {
+  if (typeof s !== 'string' || !/^\d{2}:\d{2}$/.test(s)) return false;
+  const [h, m] = s.split(':').map(Number);
+  return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+}
+
+function normalizeArabic(s) {
+  if (typeof s !== 'string') return '';
+  return s
+    .replace(/[\u064B-\u0655\u0670\u0640]/g, '')
+    .replace(/[إأآا]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/[^\u0600-\u06FF\s\w]/g, '')
+    .toLowerCase();
+}
+
+/* ═══════════════════════ المفاتيح ═══════════════════════ */
+const STORAGE_KEY = 'ihya_v7';
+const LEGACY_KEYS = ['ihya_v6','ihya_v5','ihya_v4'];
+const MUJAHADAH_KEYS = ['الفرائض','القيام','القرآن','الذكر','الصيام','الصمت','الصدقة','الاستغفار'];
+const MUATABAH_IDS = ['q1','q2','q3','q4'];
+const MAX_CUSTOM_TASKS = 30;
+const MAX_CUSTOM_TASK_LENGTH = 80;
+function isCustomTaskKey(key) {
+  if (typeof key !== 'string' || !key.startsWith('مخصص:')) return false;
+  const label = key.slice('مخصص:'.length).trim();
+  return label.length > 0 && [...label].length <= MAX_CUSTOM_TASK_LENGTH;
+}
+function cloneAppData() {
+  return JSON.parse(JSON.stringify(appData));
+}
+function saveOrRollback(previousState) {
+  if (save()) return true;
+  appData = previousState;
+  updateDisplay();
+  restoreFormState();
+  return false;
+}
+
+function currentDayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+function formatArabicDate(iso, mode) {
+  if (iso === 'اليوم') return 'اليوم';
+  const valid = isValidISODate(iso) ? iso : coerceDate(iso);
+  if (!valid) return '—';
+  try {
+    const opts = mode === 'short'
+      ? { day: 'numeric', month: 'short' }
+      : { day: 'numeric', month: 'short', year: 'numeric' };
+    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', opts)
+      .format(new Date(valid + 'T12:00:00'));
+  } catch { return valid; }
+}
+
+// ✅ إصلاح تجميلي (ب) : تسمية رقمية قصيرة DD/MM لأعمدة الرسم
+function formatNumericShortDate(iso) {
+  const valid = isValidISODate(iso) ? iso : coerceDate(iso);
+  if (!valid) return '';
+  const [, m, d] = valid.split('-');
+  return `${parseInt(d, 10)}/${parseInt(m, 10)}`;
+}
+
+function defaultState() {
+  return {
+    schemaVersion: 7,
+    currentStreak: 0,
+    lastActivityDate: null,
+    lastActiveDate: currentDayKey(),
+    lights: 0, darks: 0, empties: 0,
+    hours: new Array(24).fill(null),
+    musharatah: {}, muhasabah: {}, muatabah: {}, mujahadah: {},
+    vigilanceLog: [],
+    history: [],
+    birthYear: null,
+    notifications: { morning:'05:30', evening:'21:00', enabled:false, lastFired:{} }
+  };
+}
+
+/* ═══════════════════════ validateImport ═══════════════════════ */
+function validateImport(obj) {
+  const d = defaultState();
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new TypeError('بنية ملف البيانات غير صالحة.');
+  const knownKeys = ['schemaVersion','currentStreak','lastActivityDate','lastActiveDate','lights','darks','empties','hours','musharatah','muhasabah','muatabah','mujahadah','vigilanceLog','history','birthYear','notifications'];
+  const payloadKeys = knownKeys.filter(k => k !== 'schemaVersion' && Object.prototype.hasOwnProperty.call(obj, k));
+  const structuralKeys = ['hours','history','mujahadah','musharatah','muhasabah','muatabah','notifications','vigilanceLog'];
+  if (payloadKeys.length < 2 || !payloadKeys.some(k => structuralKeys.includes(k))) {
+    throw new TypeError('ملف الاستيراد لا يحتوي على بنية كافية من بيانات التطبيق.');
+  }
+  const num = v => Number.isFinite(v) && v >= 0 && v <= 1000000;
+  const dayCount = v => Number.isInteger(v) && v >= 0 && v <= 24;
+  const str = v => typeof v === 'string' && v.length < 8000;
+  if (obj.lastActiveDate != null && !coerceDate(obj.lastActiveDate)) {
+    throw new TypeError('تاريخ آخر يوم نشط غير صالح.');
+  }
+
+  d.currentStreak    = num(obj.currentStreak) ? Math.floor(obj.currentStreak) : 0;
+  d.lastActivityDate = coerceDate(obj.lastActivityDate);
+  d.lastActiveDate   = coerceDate(obj.lastActiveDate) || currentDayKey();
+
+  d.lights  = dayCount(obj.lights)  ? obj.lights  : 0;
+  d.darks   = dayCount(obj.darks)   ? obj.darks   : 0;
+  d.empties = dayCount(obj.empties) ? obj.empties : 0;
+  d.birthYear = Number.isInteger(obj.birthYear) && obj.birthYear > 1900 && obj.birthYear <= new Date().getFullYear() ? obj.birthYear : null;
+
+  d.hours = Array.isArray(obj.hours)
+    ? obj.hours.slice(0,24).map(h => ['light','dark','empty'].includes(h) ? h : null)
+    : new Array(24).fill(null);
+  while (d.hours.length < 24) d.hours.push(null);
+
+  const m = obj.musharatah && typeof obj.musharatah === 'object' ? obj.musharatah : {};
+  d.musharatah = {
+    intention: str(m.intention) ? m.intention : '',
+    limbs: Array.isArray(m.limbs) ? m.limbs.filter(str).slice(0,20) : [],
+    date: coerceDate(m.date) || ''
+  };
+
+  const h = obj.muhasabah && typeof obj.muhasabah === 'object' ? obj.muhasabah : {};
+  d.muhasabah = { why: str(h.why)?h.why:'', how: str(h.how)?h.how:'', whom: str(h.whom)?h.whom:'' };
+
+  const t = obj.muatabah && typeof obj.muatabah === 'object' ? obj.muatabah : {};
+  d.muatabah = {
+    note: str(t.note) ? t.note : '',
+    checkedIds: Array.isArray(t.checkedIds) ? t.checkedIds.filter(x => MUATABAH_IDS.includes(x)) : [],
+    correctionAction: str(t.correctionAction) ? t.correctionAction : '',
+    correctionDate: coerceDate(t.correctionDate) || '',
+    date: coerceDate(t.date) || ''
+  };
+
+  const j = obj.mujahadah && typeof obj.mujahadah === 'object' && !Array.isArray(obj.mujahadah) ? obj.mujahadah : {};
+  d.mujahadah = {};
+  MUJAHADAH_KEYS.forEach(k => { if (typeof j[k] === 'boolean') d.mujahadah[k] = j[k]; });
+  Object.entries(j)
+    .filter(([key, value]) => isCustomTaskKey(key) && typeof value === 'boolean')
+    .slice(0, MAX_CUSTOM_TASKS)
+    .forEach(([key, value]) => { d.mujahadah[key] = value; });
+
+  if (Array.isArray(obj.vigilanceLog)) {
+    d.vigilanceLog = obj.vigilanceLog.slice(0,100).map(x => ({
+      text: str(x?.text) ? x.text : '',
+      date: coerceDate(x?.date) || ''
+    })).filter(x => x.text);
+  }
+
+  if (Array.isArray(obj.history)) {
+    d.history = obj.history.slice(0,90).map(item => ({
+      date: coerceDate(item?.date) || '',
+      lights: dayCount(item?.lights) ? item.lights : 0,
+      darks:  dayCount(item?.darks)  ? item.darks  : 0,
+      empties:dayCount(item?.empties)? item.empties: 0,
+      hoursArray: Array.isArray(item?.hoursArray)
+        ? item.hoursArray.slice(0,24).map(x => ['light','dark','empty'].includes(x) ? x : null)
+        : null,
+      mujahadahCount: Number.isInteger(item?.mujahadahCount) && item.mujahadahCount >= 0 && item.mujahadahCount <= MUJAHADAH_KEYS.length + MAX_CUSTOM_TASKS ? item.mujahadahCount : 0,
+      mujahadahTotal: Number.isInteger(item?.mujahadahTotal) && item.mujahadahTotal >= MUJAHADAH_KEYS.length && item.mujahadahTotal <= MUJAHADAH_KEYS.length + MAX_CUSTOM_TASKS ? item.mujahadahTotal : Math.min(MUJAHADAH_KEYS.length + MAX_CUSTOM_TASKS, Math.max(MUJAHADAH_KEYS.length, Object.keys(item?.mujahadah || {}).filter(k => MUJAHADAH_KEYS.includes(k) || isCustomTaskKey(k)).length)),
+      hoursFilled: dayCount(item?.hoursFilled) ? item.hoursFilled : 0,
+      musharatah: {
+        intention: str(item?.musharatah?.intention) ? item.musharatah.intention : '',
+        limbs: Array.isArray(item?.musharatah?.limbs) ? item.musharatah.limbs.filter(str).slice(0,20) : []
+      },
+      muhasabah: {
+        why: str(item?.muhasabah?.why)?item.muhasabah.why:'',
+        how: str(item?.muhasabah?.how)?item.muhasabah.how:'',
+        whom:str(item?.muhasabah?.whom)?item.muhasabah.whom:''
+      },
+      muatabah: {
+        note: str(item?.muatabah?.note) ? item.muatabah.note : '',
+        correctionAction: str(item?.muatabah?.correctionAction) ? item.muatabah.correctionAction : ''
+      },
+      mujahadah: (item?.mujahadah && typeof item.mujahadah === 'object')
+        ? Object.fromEntries([
+            ...Object.entries(item.mujahadah).filter(([k,v]) => MUJAHADAH_KEYS.includes(k) && typeof v === 'boolean'),
+            ...Object.entries(item.mujahadah).filter(([k,v]) => isCustomTaskKey(k) && typeof v === 'boolean').slice(0, MAX_CUSTOM_TASKS)
+          ])
+        : {},
+      vigilance: Array.isArray(item?.vigilance)
+        ? item.vigilance.filter(x => str(x?.text)).slice(0,20).map(x => ({
+            text: x.text, date: coerceDate(x.date) || ''
+          }))
+        : []
+    })).filter(x => x.date);
+  }
+
+  const n = obj.notifications && typeof obj.notifications === 'object' ? obj.notifications : {};
+  const lf = n.lastFired && typeof n.lastFired === 'object' ? n.lastFired : {};
+  d.notifications = {
+    morning: isValidTime(n.morning) ? n.morning : '05:30',
+    evening: isValidTime(n.evening) ? n.evening : '21:00',
+    enabled: !!n.enabled,
+    lastFired: {
+      morning: coerceDate(lf.morning),
+      evening: coerceDate(lf.evening)
+    }
+  };
+  return d;
+}
+
+/* ═══════════════════════ الترحيل ═══════════════════════ */
+function migrateIfNeeded() {
+  if (localStorage.getItem(STORAGE_KEY)) return;
+  for (const legacyKey of LEGACY_KEYS) {
+    try {
+      const raw = localStorage.getItem(legacyKey);
+      if (!raw) continue;
+      const migrated = validateImport(JSON.parse(raw));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      // Preserve legacy data as a recovery copy; do not destructively delete it during migration.
+      return;
+    } catch (_) { /* تالف؟ جرّب المفتاح التالي */ }
+  }
+}
+
+let storageRecoveryWarning = '';
+function loadAppData() {
+  let raw = null;
+  try {
+    migrateIfNeeded();
+    raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    return validateImport(JSON.parse(raw));
+  } catch (err) {
+    if (raw) {
+      try { localStorage.setItem(STORAGE_KEY + '_recovery_backup', raw); } catch (_) {}
+      storageRecoveryWarning = 'تعذّرت قراءة البيانات المحفوظة. احتُفظ بالنسخة الخام منفصلة؛ نزّلها أولًا قبل متابعة الاستخدام.';
+    }
+    console.error('تعذّر تحميل بيانات التطبيق:', err);
+    return defaultState();
+  }
+}
+
+let appData = loadAppData();
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    return true;
+  } catch (err) {
+    console.error('تعذّر حفظ البيانات محليًا:', err);
+    showToast('⚠️ تعذّر الحفظ؛ قد تكون مساحة التخزين ممتلئة. صدّر نسخة احتياطية.');
+    return false;
+  }
+}
+
+/* ═══════════════════════ سلسلة الالتزام ═══════════════════════ */
+function yesterdayISO() {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+let rolloverBlocked = false;
+function ensureCurrentDay() {
+  rolloverBlocked = false;
+  rolloverIfNeeded();
+  if (rolloverBlocked) {
+    showToast('⚠️ لم يكتمل ترحيل اليوم السابق (التخزين ممتلئ). صدّر نسخة احتياطية ثم أفرغ مساحة.');
+    return false;
+  }
+  return true;
+}
+function recordActivity() {
+  const today = currentDayKey();
+  if (appData.lastActivityDate === today) return;
+  if (appData.lastActivityDate === yesterdayISO()) {
+    appData.currentStreak = (appData.currentStreak || 0) + 1;
+  } else {
+    appData.currentStreak = 1;
+  }
+  appData.lastActivityDate = today;
+}
+
+/* ═══════════════════════ الأرشفة + الترحيل ═══════════════════════ */
+function archiveFullDay() {
+  const hadActivity =
+    appData.lights + appData.darks + appData.empties > 0 ||
+    Object.values(appData.mujahadah || {}).some(Boolean) ||
+    (appData.muhasabah?.why || appData.muhasabah?.how || appData.muhasabah?.whom) ||
+    (appData.muatabah?.note || appData.muatabah?.correctionAction) ||
+    (appData.musharatah?.intention || appData.musharatah?.limbs?.length) ||
+    (appData.vigilanceLog?.length > 0);
+  if (!hadActivity) return;
+
+  appData.history.unshift({
+    date: appData.lastActiveDate,
+    lights: appData.lights, darks: appData.darks, empties: appData.empties,
+    hoursArray: [...(appData.hours || new Array(24).fill(null))],
+    mujahadahCount: Object.values(appData.mujahadah || {}).filter(Boolean).length,
+    mujahadahTotal: MUJAHADAH_KEYS.length + Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length,
+    hoursFilled: (appData.hours || []).filter(Boolean).length,
+    musharatah: { intention: appData.musharatah?.intention || '', limbs: [...(appData.musharatah?.limbs || [])] },
+    muhasabah: {
+      why: appData.muhasabah?.why || '', how: appData.muhasabah?.how || '', whom: appData.muhasabah?.whom || ''
+    },
+    muatabah: {
+      note: appData.muatabah?.note || '',
+      correctionAction: appData.muatabah?.correctionAction || ''
+    },
+    mujahadah: {...(appData.mujahadah || {})},
+    vigilance: [...(appData.vigilanceLog || [])]
+  });
+  if (appData.history.length > 90) appData.history.pop();
+}
+
+function collectDirtyFields() {
+  const ids = ['daily-intention','diwan-why','diwan-how','diwan-whom',
+               'muatabah-note','correction-action'];
+  const out = {};
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value && el.value.trim()) out[id] = el.value;
+  });
+  return out;
+}
+
+function rolloverIfNeeded() {
+  const today = currentDayKey();
+  if (appData.lastActiveDate === today) return false;
+
+  const dirty = collectDirtyFields();
+  const before = cloneAppData();
+  archiveFullDay();
+  const yest = yesterdayISO();
+  if (appData.lastActivityDate !== yest && appData.lastActivityDate !== today) {
+    appData.currentStreak = 0;
+  }
+  appData.lights = 0; appData.darks = 0; appData.empties = 0;
+  appData.hours = new Array(24).fill(null);
+  appData.muhasabah = {};
+  appData.mujahadah = Object.fromEntries(
+    Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).slice(0, MAX_CUSTOM_TASKS).map(key => [key, false])
+  );
+  appData.muatabah = {};
+  appData.vigilanceLog = [];
+  appData.musharatah = {};
+  appData.lastActiveDate = today;
+
+  const ok = saveOrRollback(before);
+
+  // ✅ استرجاع الحقول أولًا — في كل الحالات
+  restoreFormState();
+  Object.entries(dirty).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = v;
+  });
+
+  // ✅ الآن نُقرّر: فشل أم نجاح
+  if (!ok) {
+    rolloverBlocked = true;
+    return false;
+  }
+
+  if (Object.keys(dirty).length) {
+    showToast('🌅 يوم جديد — راجع الحقول غير المحفوظة قبل الحفظ.');
+  }
+  return true;
+}
+
+/* ═══════════════════════ التنقل ═══════════════════════ */
+const tabs = ['musharatah','muraqabah','muhasabah','muaqabah','mujahadah','muatabah','tools','library','history'];
+
+// ✅ إصلاح تجميلي (أ) : تبديل الفئات بـ classList بدل إعادة كتابة className كاملة
+const TAB_ACTIVE_REGULAR   = ['bg-islamic-600','text-white','shadow-sm','font-bold'];
+const TAB_INACTIVE_REGULAR = ['text-slate-600','hover:bg-slate-100'];
+const TAB_ACTIVE_HISTORY   = ['bg-islamic-600','text-white','shadow-sm'];
+const TAB_INACTIVE_HISTORY = ['bg-white','shadow-sm','text-slate-700','hover:bg-slate-50'];
+const TAB_STATE_CLASSES = [...new Set([
+  ...TAB_ACTIVE_REGULAR, ...TAB_INACTIVE_REGULAR,
+  ...TAB_ACTIVE_HISTORY, ...TAB_INACTIVE_HISTORY
+])];
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  tabs.forEach(id => {
+    const b = document.getElementById('btn-' + id);
+    if (!b) return;
+    const isHistory = id === 'history';
+    const isActive = id === tabId;
+    TAB_STATE_CLASSES.forEach(c => b.classList.remove(c));
+    const toAdd = isActive
+      ? (isHistory ? TAB_ACTIVE_HISTORY   : TAB_ACTIVE_REGULAR)
+      : (isHistory ? TAB_INACTIVE_HISTORY : TAB_INACTIVE_REGULAR);
+    toAdd.forEach(c => b.classList.add(c));
+  });
+  const t = document.getElementById('tab-' + tabId);
+  if (t) { t.classList.remove('hidden'); t.classList.add('fade-in'); }
+  if (tabId === 'library') renderLibrary();
+}
+
+/* ═══════════════════════ الدرر ═══════════════════════ */
+const libraryData = [
+  {cat:'quran', ref:'الأنبياء: 47', text:'﴿وَنَضَعُ الْمَوَازِينَ الْقِسْطَ لِيَوْمِ الْقِيَامَةِ فَلَا تُظْلَمُ نَفْسٌ شَيْئًا﴾'},
+  {cat:'quran', ref:'الكهف: 49', text:'﴿وَوُضِعَ الْكِتَابُ فَتَرَى الْمُجْرِمِينَ مُشْفِقِينَ مِمَّا فِيهِ وَيَقُولُونَ يَا وَيْلَتَنَا مَالِ هَذَا الْكِتَابِ لَا يُغَادِرُ صَغِيرَةً وَلَا كَبِيرَةً إِلَّا أَحْصَاهَا﴾'},
+  {cat:'quran', ref:'المجادلة: 6', text:'﴿يَوْمَ يَبْعَثُهُمُ اللَّهُ جَمِيعًا فَيُنَبِّئُهُم بِمَا عَمِلُوا ۚ أَحْصَاهُ اللَّهُ وَنَسُوهُ﴾'},
+  {cat:'quran', ref:'الزلزلة: 7-8', text:'﴿فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ ۞ وَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا يَرَهُ﴾'},
+  {cat:'quran', ref:'الحشر: 18', text:'﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَلْتَنظُرْ نَفْسٌ مَّا قَدَّمَتْ لِغَدٍ﴾'},
+  {cat:'quran', ref:'ق: 16', text:'﴿وَلَقَدْ خَلَقْنَا الْإِنسَانَ وَنَعْلَمُ مَا تُوَسْوِسُ بِهِ نَفْسُهُ ۖ وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ﴾'},
+  {cat:'quran', ref:'آل عمران: 30', text:'﴿يَوْمَ تَجِدُ كُلُّ نَفْسٍ مَّا عَمِلَتْ مِنْ خَيْرٍ مُّحْضَرًا وَمَا عَمِلَتْ مِن سُوءٍ﴾'},
+  {cat:'quran', ref:'البقرة: 281', text:'﴿ثُمَّ تُوَفَّىٰ كُلُّ نَفْسٍ مَّا كَسَبَتْ وَهُمْ لَا يُظْلَمُونَ﴾'},
+  {cat:'quran', ref:'آل عمران: 5', text:'﴿إِنَّ اللَّهَ لَا يَخْفَىٰ عَلَيْهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ﴾'},
+  {cat:'quran', ref:'البقرة: 235', text:'﴿وَاعْلَمُوا أَنَّ اللَّهَ يَعْلَمُ مَا فِي أَنفُسِكُمْ فَاحْذَرُوهُ﴾'},
+  {cat:'quran', ref:'الزمر: 47', text:'﴿وَبَدَا لَهُم مِّنَ اللَّهِ مَا لَمْ يَكُونُوا يَحْتَسِبُونَ﴾'},
+  {cat:'quran', ref:'المؤمنون: 99-100', text:'﴿رَبِّ ارْجِعُونِ ۞ لَعَلِّي أَعْمَلُ صَالِحًا فِيمَا تَرَكْتُ ۚ كَلَّا﴾'},
+  {cat:'quran', ref:'الأنعام: 31', text:'﴿قَدْ خَسِرَ الَّذِينَ كَذَّبُوا بِلِقَاءِ اللَّهِ﴾'},
+
+  {cat:'hadith', ref:'الترمذي وابن ماجه (حسّنه الترمذي، وضعّفه الألباني)', text:'«الكَيِّسُ مَنْ دَانَ نَفْسَهُ وَعَمِلَ لِمَا بَعْدَ الْمَوْتِ، وَالْأَحْمَقُ مَنْ أَتْبَعَ نَفْسَهُ هَوَاهَا وَتَمَنَّى عَلَى اللَّهِ الْأَمَانِيَّ»'},
+  {cat:'hadith', ref:'أبو نعيم والبيهقي (وضعّفه الألباني لاحقًا)', text:'«لَيْسَ يَتَحَسَّرُ أَهْلُ الْجَنَّةِ إِلَّا عَلَى سَاعَةٍ مَرَّتْ بِهِمْ لَمْ يَذْكُرُوا اللَّهَ فِيهَا»'},
+  {cat:'hadith', ref:'مسلم', text:'«بَادِرُوا بِالْأَعْمَالِ فِتَنًا كَقِطَعِ اللَّيْلِ الْمُظْلِمِ»'},
+  {cat:'hadith', ref:'الطبراني — يُراجَع تخريجه', text:'«إِنَّ رُوحَ الْقُدُسِ نَفَثَ فِي رُوعِي: أَنَّ نَفْسًا لَنْ تَمُوتَ حَتَّى تَسْتَكْمِلَ رِزْقَهَا»'},
+  {cat:'hadith', ref:'ابن أبي الدنيا — يُراجَع تخريجه', text:'«لَا يَكُونُ الْمُؤْمِنُ طَاعِنًا إِلَّا فِي ثَلَاثٍ: تَزَوُّدٍ لِمَعَادٍ، أَوْ مَرَمَّةٍ لِمَعَاشٍ، أَوْ لَذَّةٍ فِي غَيْرِ مُحَرَّمٍ»'},
+  {cat:'hadith', ref:'من حديث سلمان وأبي الدرداء — أقرّه النبي ﷺ بقوله: «صدق سلمان»', text:'«إِنَّ لِنَفْسِكَ عَلَيْكَ حَقًّا، وَلِرَبِّكَ عَلَيْكَ حَقًّا، فَأَعْطِ كُلَّ ذِي حَقٍّ حَقَّهُ»'},
+
+  {cat:'salaf', ref:'عمر بن الخطاب رضي الله عنه', text:'«حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا، وَزِنُوهَا قَبْلَ أَنْ تُوزَنُوا، وَتَهَيَّأُوا لِلْعَرْضِ الْأَكْبَرِ»'},
+  {cat:'salaf', ref:'الحسن البصري', text:'«لا يَزَالُ الْعَبْدُ بِخَيْرٍ مَا كَانَتْ لَهُ وَاعِظَةٌ مِنْ نَفْسِهِ، وَمُحَاسَبَةٌ لَهَا»'},
+  {cat:'salaf', ref:'ميمون بن مهران', text:'«لا يَكُونُ الْعَبْدُ مِنَ الْمُتَّقِينَ حَتَّى يُحَاسِبَ نَفْسَهُ أَشَدَّ مِنْ مُحَاسَبَةِ الشَّرِيكِ لِشَرِيكِهِ»'},
+  {cat:'salaf', ref:'أبو عثمان النيسابوري', text:'«مَنْ كَانَ فِي مُحَاسَبَةِ نَفْسِهِ .. فَهُوَ فِي رِبَاطٍ»'},
+  {cat:'salaf', ref:'ابن عطاء', text:'«أَفْضَلُ الطَّاعَاتِ مُرَاقَبَةُ الْحَقِّ عَلَى دَوَامِ الْأَوْقَاتِ»'},
+  {cat:'salaf', ref:'الجريري', text:'«أَمْرُنَا مَبْنِيٌّ عَلَى أَصْلَيْنِ: أَنْ تَلْزَمَ نَفْسَكَ الْمُرَاقَبَةَ لِلَّهِ، وَيَكُونَ الْعِلْمُ عَلَى ظَاهِرِكَ قَائِمًا»'},
+  {cat:'salaf', ref:'أبو حفص النيسابوري', text:'«إِذَا جَلَسْتَ لِلنَّاسِ فَكُنْ وَاعِظًا لِنَفْسِكَ وَقَلْبِكَ، وَلَا يَغُرَّنَّكَ اجْتِمَاعُهُمْ عَلَيْكَ»'},
+  {cat:'salaf', ref:'ذو النون المصري', text:'قال لامرأة في الصحراء: «هل يُوجَدُ مَعَ اللهِ غُرْبَةٌ؟!»'},
+  {cat:'salaf', ref:'الشبلي', text:'«لَمْ أَجِدْ مَوْضِعًا لَا يَرَانِي فِيهِ أَحَدٌ؛ إِذِ اللهُ مُطَّلِعٌ عَلَيَّ»'},
+  {cat:'salaf', ref:'إبراهيم التيمي', text:'«مَثَّلْتُ نَفْسِي فِي الجَنَّةِ .. ثُمَّ فِي النَّارِ، فَقُلْتُ: يَا نَفْسُ؛ أَيُّ شَيْءٍ تُرِيدِينَ؟ قَالَتْ: أُرِيدُ أَنْ أُرَدَّ إِلَى الدُّنْيَا فَأَعْمَلَ صَالِحًا»'},
+  {cat:'salaf', ref:'الأحنف بن قيس', text:'كان يقول في صلاته بالليل: «يَا حَنِيفُ؛ مَا حَمَلَكَ عَلَى مَا صَنَعْتَ يَوْمَ كَذَا؟»'},
+  {cat:'salaf', ref:'سعيد بن جبير', text:'«لَا يَكُونُ الْعَبْدُ مِنَ الْمُتَّقِينَ حَتَّى يُحَاسِبَ نَفْسَهُ»'},
+
+  {cat:'story', ref:'إحياء علوم الدين — موضع النقل واللفظ بحاجة إلى تحقق', title:'الراعي وعمر', text:'سأل عمرُ راعيًا: بِعْنِي شاة. قال: إني مملوك! قال: قُلْ لسيدك: أكلها الذئب! قال: «فأين الله؟!» فبكى عمر: أعتقتُك في الدنيا، وأرجو أن تعتقك في الآخرة.'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'الشاب والطائر', text:'ناول الشيخُ أصحابَه طيورًا وسكاكين: اذبحوها في موضع لا يراكم فيه أحد. فرجع الشابُّ والطائر حيٌّ في يده! قال: «لم أجد موضعًا لا يراني فيه الله!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'الشبلي والنوري', text:'دخل الشبلي على النوري معتكفًا، فوجده ساكنًا. قال: من أين أخذت هذه المراقبة؟ قال: «من سُتورٍ كانت لنا؛ إذا أرادت الصيد .. رابطت رأس الجُحر!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'ابن خفيف في صور', text:'قال الشاب لابن خفيف: «يا بن خفيف؛ الدنيا قليل، وما بقي من القليل إلا قليل، فخذ من القليل الكثير»!'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'توبة بن الصِّمَّة', text:'حسب عمره فوجده ستين سنة، فحسب أيامها فإذا هي واحدٌ وعشرون ألفًا وخمسمئة يوم! فصرخ: «يا ويلتي! ألقى الملك بأحد وعشرين ألف ذنب؟!» ثم خرَّ مغشيًا عليه ومات.'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'إبراهيم بن أدهم', text:'رآه رجل ينام الليل كله ثم يصلي الفجر بغير وضوء! سأله؟ قال: «كنتُ الليلَ كله جائلًا في رياض الجنة وفي أودية النار .. فهل في ذلك نوم؟!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'معاذة العدوية', text:'كانت إذا جاء النهار .. قالت: هذا يومي الذي أموت فيه! فما تطعم حتى تُمسي. وإذا جاء الليل .. قالت: هذه ليلتي التي أموت فيها! فتصلي حتى تصبح.'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'ربيعة العدوية', text:'قامت ليلة كاملة إلى السحر. فلما كان السحر قلت: ما جزاء من قوّانا على قيام هذه الليلة؟ قالت: «جزاؤه أن تصوم له غدًا»!'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'بكاء آدم عليه السلام', text:'لما أُهبط آدم إلى الأرض .. مكث لا ترقأ له دمعة، وبكى ثلاث مئة عام، فعاتبه الله: «ألم أصطفك لنفسي، وأحللك داري؟!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'عبادة بن البجلي', text:'كان يقول في بكائه: «إلهي؛ أنا الذي كلما طال عمري .. زادت ذنوبي؛ كلما هممتُ بترك خطيئة .. عرضت لي شهوة، وكلما هممتُ بترك شهوة .. عرضت لي خطيئة»!'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'كرز بن وبرة', text:'قيل له: قد أجهدتَ نفسك! قال: كم عمر الدنيا؟ قيل: سبعة آلاف سنة. قال: وكم يوم القيامة؟ قيل: خمسون ألف سنة. قال: كيف يعجز أحدُكم أن يعمل سُبع يوم حتى يأمن ذلك اليوم؟!'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'حسان بن أبي سنان', text:'مرَّ بغرفة: متى بُنيت هذه؟ ثم أقبل على نفسه: «تسأليني عما لا يعنيكِ؟! لأعاقبتكِ بصوم سنة!» فصامها.'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'مالك بن ضيغم', text:'عاتب نفسه على نومة نهار، فقال: «أما إن لله عليَّ عهدًا لا أنقضه أبدًا؛ لا أُوشدُّكِ الأرضَ لنوم حولًا إلا لمرض حائل أو عقل زائل!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'الرجل والنظرة', text:'نظر بعضهم نظرة واحدة إلى امرأة! فجعل على نفسه ألا يشرب الماء البارد طول حياته! فكان يشرب الماء الحار لينغّص على نفسه العيش.'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'عتبة الغلام', text:'كان يقطع الليل بثلاث صيحات. قال جعفر بن محمد: «لا تنظر إلى صياحه، ولكن انظر إلى ما كان فيه بين الصيحتين!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'زمعة والركب', text:'كان إذا كان السحر نادى: «أيها الركب المعرّسون، أكلَّ هذا الليل ترقدون؟! أفلا تقومون فترحلون؟!» فيتواثبون .. فيُسمع من هنا داعٍ ومن هنا قارئ.'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'الحسن البصري', text:'كان يقول: «عجبتُ لمن يعرف أن الجنة تزهر فوقه، وأن النار تسعر تحته .. كيف ينام بينهما؟!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'صيحة المحب', text:'قال بعضهم: «ما أخاف من الموت إلا من حبٍّ يحول بيني وبين قيام الليل»!'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'أويس القرني', text:'قيل له: ما لي أراك كأنك مريض؟ قال: «وما لأويسٍ ألا يكون مريضًا؟! يطعم المريضُ وأويسٌ غير طاعم، وينام المريضُ وأويسٌ غير نائم!»'},
+  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'مالك بن دينار والحجاج', text:'سمعتُ الحجاج يخطب: «رحم الله امرأً حاسب نفسه قبل أن يُحاسب، رحم الله امرأً أخذ بعنان عمله فنظر ماذا يريد به!»'},
+
+  {cat:'poem', ref:'من الوافر', text:'أَشَدُّ الْغَمِّ عِنْدِي فِي سُرُورٍ .. تَيَقَّنَ عَنْهُ صَاحِبُهُ انْتِقَالَا'},
+  {cat:'poem', ref:'من الوافر', text:'إِذَا أَقْبَلَتْ فِي خُلَلٍ حِسَانِ .. يَسِيحُ إِلَى مَكَانٍ مِنْ مَكَانِ .. وَيَظْفَرُ فِي الْعِبَادَةِ بِالْأَمَانِي .. وَذِكْرُ اللهِ بِالْقَوْلِ وَاللِّسَانِ'},
+  {cat:'poem', ref:'مناجاة شعبانة', text:'إلهي؛ ما أشوقَني إلى لقائك! وأعظمَ رجائي لجزائك! فقد جعلتُ الاعترافَ بالذنب وسائلي إليك.'},
+  {cat:'poem', ref:'مناجاة معاذة', text:'يا ربِّ؛ لو كنتَ أهلًا أن تُعصى .. ما عصيتُك، ولكنك أهلٌ أن تُطاع .. فأطعناك بفضلك.'},
+  {cat:'poem', ref:'مناجاة', text:'إلهي؛ قَدْ جَرَحْتُ عَلَى نَفْسِي فِي النَّظَرِ لَهَا، وَبَقِيَ لَهَا حُسْنُ نَظَرِكَ .. فَالْوَيْلُ لَهَا إِنْ لَمْ تَسْعَدْهَا.'},
+  {cat:'poem', ref:'مناجاة', text:'إلهي؛ إِنَّكَ لَمْ تَزَلْ بِي بَرًّا أَيَّامَ حَيَاتِي، فَلَا تَقْطَعْ عَنِّي بِرَّكَ بَعْدَ مَمَاتِي.'},
+  {cat:'poem', ref:'مناجاة', text:'إلهي؛ إِنْ كَانَتْ ذُنُوبِي قَدْ أَخَافَتْنِي .. فَإِنَّ مَحَبَّتِي لَكَ قَدْ أَجَارَتْنِي.'},
+  {cat:'poem', ref:'مناجاة', text:'إلهي؛ لَوْلَا مَا عَرَفْتُ مِنْ كَرَمِكَ .. مَا رَجَوْتُ ثَوَابَكَ، وَلَوْلَا مَا خِفْتُ عِقَابَكَ .. مَا قَارَفْتُ الذُّنُوبَ.'}
+];
+
+let currentCategory = 'all', currentSearch = '';
+function renderLibrary() {
+  const c = document.getElementById('library-container');
+  if (!c) return;
+  const normSearch = normalizeArabic(currentSearch);
+  const filtered = libraryData.filter(p => {
+    const mc = currentCategory === 'all' || p.cat === currentCategory;
+    if (!mc) return false;
+    if (!normSearch) return true;
+    return normalizeArabic(p.text).includes(normSearch) ||
+           normalizeArabic(p.ref || '').includes(normSearch) ||
+           normalizeArabic(p.title || '').includes(normSearch);
+  });
+  if (!filtered.length) { c.innerHTML = '<p class="text-slate-400 text-center py-6">لا توجد درر مطابقة.</p>'; return; }
+  const labels = {quran:'📖 آية', hadith:'🕌 حديث', salaf:'💎 قول', story:'📜 قصة', poem:'🖋️ مناجاة'};
+  const colors = {
+    quran:'bg-emerald-50 border-emerald-200 text-emerald-900',
+    hadith:'bg-blue-50 border-blue-200 text-blue-900',
+    salaf:'bg-amber-50 border-amber-200 text-amber-900',
+    story:'bg-purple-50 border-purple-200 text-purple-900',
+    poem:'bg-rose-50 border-rose-200 text-rose-900'
+  };
+  c.innerHTML = filtered.map(p => `
+    <div class="p-3 rounded-xl border ${colors[p.cat] || 'bg-slate-50 border-slate-200'} shadow-sm">
+      <div class="flex justify-between items-start mb-1">
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/80">${labels[p.cat] || ''}</span>
+        <span class="text-[10px] text-slate-600 font-semibold text-left ml-2">${esc(p.ref || '')}</span>
+      </div>
+      ${p.title ? `<h4 class="font-bold text-slate-900 text-[12px] mb-1">${esc(p.title)}</h4>` : ''}
+      <p class="amiri-font leading-relaxed text-[14px]">${esc(p.text)}</p>
+    </div>
+  `).join('');
+}
+function filterCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    if (b.dataset.cat === cat) b.className = "cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-islamic-600 text-white transition-all";
+    else b.className = "cat-btn flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all";
+  });
+  renderLibrary();
+}
+function filterLibrary() {
+  currentSearch = document.getElementById('library-search').value.trim();
+  renderLibrary();
+}
+
+/* ═══════════════════════ اقتباس اليوم ═══════════════════════ */
+const dailyQuotes = libraryData.filter(p => ['quran','salaf','hadith'].includes(p.cat)).map(p => p.text);
+let dailyQuoteIndex = null;
+function rotateQuote(advance = false) {
+  const el = document.getElementById('daily-quote');
+  if (!el || !dailyQuotes.length) return;
+  if (dailyQuoteIndex === null) {
+    const daySeed = Number(currentDayKey().replace(/-/g, ''));
+    dailyQuoteIndex = daySeed % dailyQuotes.length;
+  }
+  if (advance) dailyQuoteIndex = (dailyQuoteIndex + 1) % dailyQuotes.length;
+  el.innerText = dailyQuotes[dailyQuoteIndex];
+}
+
+/* ═══════════════════════ الساعات ═══════════════════════ */
+function renderHoursGrid() {
+  for (let p = 0; p < 4; p++) {
+    const grid = document.querySelector(`#hours-grid-parent [data-period="${p}"]`);
+    if (!grid) continue;
+    const start = p * 6;
+    grid.innerHTML = Array.from({length:6}, (_, k) => {
+      const i = start + k;
+      const h = String(i).padStart(2,'0');
+      const s = appData.hours[i];
+      const cls = s === 'light' ? 'bg-emerald-500 text-white border-emerald-600'
+                : s === 'dark'  ? 'bg-rose-500 text-white border-rose-600'
+                : s === 'empty' ? 'bg-amber-400 text-white border-amber-500'
+                : 'bg-slate-100 text-slate-600 border-slate-300';
+      return `<button onclick="cycleHour(${i})" class="hour-cell ${cls} border rounded-lg py-2 text-[12px] font-bold" aria-label="الساعة ${h}">${h}</button>`;
+    }).join('');
+  }
+}
+function cycleHour(i) {
+  if (!ensureCurrentDay()) return;
+  if (!Number.isInteger(i) || i < 0 || i >= 24) return;
+  const before = cloneAppData();
+  const cur = appData.hours[i];
+  appData.hours[i] = cur === null ? 'light'
+                   : cur === 'light' ? 'dark'
+                   : cur === 'dark'  ? 'empty'
+                   : null;
+  recomputeFromHours();
+  if (appData.hours[i]) recordActivity();
+  if (!saveOrRollback(before)) return;
+  updateDisplay();
+}
+function recomputeFromHours() {
+  appData.lights  = appData.hours.filter(h => h === 'light').length;
+  appData.darks   = appData.hours.filter(h => h === 'dark').length;
+  appData.empties = appData.hours.filter(h => h === 'empty').length;
+}
+
+/* ═══════════════════════ التحديث ═══════════════════════ */
+function updateDisplay() {
+  document.getElementById('count-light').innerText = appData.lights;
+  document.getElementById('count-dark').innerText  = appData.darks;
+  document.getElementById('count-empty').innerText = appData.empties;
+  document.getElementById('streak-count').innerText = appData.currentStreak;
+  const dateEl = document.getElementById('date-badge');
+  if (dateEl) dateEl.innerText = formatArabicDate(currentDayKey());
+  const filled = appData.hours.filter(Boolean).length;
+  const hp = document.getElementById('hours-progress');
+  if (hp) hp.innerText = `${filled} / 24 مصنّفة`;
+  const scoreEl = document.getElementById('day-score');
+  const labelEl = document.getElementById('day-score-label');
+  if (filled === 0) {
+    scoreEl.innerText = '—';
+    labelEl.innerText = 'لم تُصنّف أي ساعة بعد';
+  } else {
+    scoreEl.innerText = Math.round((appData.lights / filled) * 100) + '%';
+    labelEl.innerText = `من أصل ${filled} ساعة مصنّفة`;
+  }
+  const customTaskCount = Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length;
+  const taskTotal = MUJAHADAH_KEYS.length + customTaskCount;
+  const mCount = Object.values(appData.mujahadah || {}).filter(Boolean).length;
+  const ms = document.getElementById('mujahadah-score');
+  if (ms) ms.innerText = `${Math.min(mCount, taskTotal)}/${taskTotal}`;
+  const mb = document.getElementById('mujahadah-bar');
+  if (mb) mb.style.width = (taskTotal ? Math.min(100, mCount / taskTotal * 100) : 0) + '%';
+  renderHoursGrid();
+  renderHistoryAndChart();
+  renderCorrectionDisplay();
+  renderVigilanceLog();
+}
+function renderCorrectionDisplay() {
+  const el = document.getElementById('correction-saved');
+  if (!el) return;
+  const c = appData.muatabah?.correctionAction;
+  if (c) { el.classList.remove('hidden'); el.innerText = `📌 الخطة: ${c}`; }
+  else el.classList.add('hidden');
+}
+function renderVigilanceLog() {
+  const el = document.getElementById('vigilance-log');
+  if (!el) return;
+  if (!appData.vigilanceLog?.length) { el.innerHTML = ''; return; }
+  el.innerHTML = appData.vigilanceLog.slice().reverse().map(x =>
+    `<div class="bg-white p-2 rounded border border-emerald-100 text-[12px]">${esc(x.text)}</div>`
+  ).join('');
+}
+
+/* ═══════════════════════ المهام المخصصة ═══════════════════════ */
+function renderCustomTasks() {
+  const container = document.getElementById('mujahadah-task-list');
+  if (!container) return;
+  container.querySelectorAll('div[data-custom-task="true"]').forEach(el => el.remove());
+  const tasks = Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).slice(0, MAX_CUSTOM_TASKS);
+  tasks.forEach(key => {
+    const wrapper = document.createElement('div');
+    wrapper.dataset.customTask = 'true';
+    wrapper.className = 'flex items-center gap-2';
+
+    const label = document.createElement('label');
+    label.className = 'flex-1 flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-100 cursor-pointer';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.className = 'mujahadah-check w-4 h-4 text-emerald-600 rounded';
+    input.dataset.task = key;
+    input.dataset.customTask = 'true';
+    input.checked = appData.mujahadah[key] === true;
+    const span = document.createElement('span');
+    const strong = document.createElement('b');
+    strong.textContent = key.slice('مخصص:'.length);
+    span.appendChild(strong);
+    label.append(input, span);
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg px-2.5 py-2 text-xs font-bold transition-colors';
+    delBtn.setAttribute('aria-label', 'حذف المهمة');
+    delBtn.textContent = '✕';
+    delBtn.onclick = () => removeCustomTask(key);
+
+    wrapper.append(label, delBtn);
+    container.appendChild(wrapper);
+  });
+}
+
+function removeCustomTask(key) {
+  if (!ensureCurrentDay()) return;
+  if (!isCustomTaskKey(key)) return;
+  if (!confirm('حذف هذه المهمة نهائيًا؟')) return;
+  const before = cloneAppData();
+  delete appData.mujahadah[key];
+  if (!saveOrRollback(before)) return;
+  renderCustomTasks();
+  updateDisplay();
+  showToast('🗑️ حُذفت المهمة.');
+}
+
+/* ═══════════════════════ استرجاع الحقول ═══════════════════════ */
+function restoreFormState() {
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+  const setChk = (sel, fn) => document.querySelectorAll(sel).forEach(fn);
+
+  renderCustomTasks();
+  setVal('daily-intention', appData.musharatah?.intention);
+
+  const savedLimbs = new Set(appData.musharatah?.limbs || []);
+  setChk('.limb-check', cb => cb.checked = savedLimbs.has(cb.dataset.limb));
+
+  setVal('diwan-why',  appData.muhasabah?.why);
+  setVal('diwan-how',  appData.muhasabah?.how);
+  setVal('diwan-whom', appData.muhasabah?.whom);
+
+  setVal('muatabah-note',     appData.muatabah?.note);
+  setVal('correction-action', appData.muatabah?.correctionAction);
+
+  const savedChecks = new Set(appData.muatabah?.checkedIds || []);
+  setChk('.muatabah-check', cb => cb.checked = savedChecks.has(cb.dataset.id));
+
+  const m = appData.mujahadah || {};
+  setChk('.mujahadah-check', cb => cb.checked = !!m[cb.dataset.task]);
+
+  if (appData.birthYear) setVal('birth-year', appData.birthYear);
+  setVal('notif-morning', appData.notifications?.morning || '05:30');
+  setVal('notif-evening', appData.notifications?.evening || '21:00');
+
+  const st = document.getElementById('notif-status');
+  if (st) {
+    st.innerText = appData.notifications?.enabled
+      ? `✅ مفعّل (صباح ${appData.notifications.morning}، مساء ${appData.notifications.evening})`
+      : '';
+  }
+}
+
+/* ═══════════════════════ دوال الحفظ ═══════════════════════ */
+function saveMusharatah() {
+  if (!ensureCurrentDay()) return;
+  const before = cloneAppData();
+  const intention = document.getElementById('daily-intention').value.trim();
+  const limbs = [];
+  document.querySelectorAll('.limb-check:checked').forEach(cb => limbs.push(cb.dataset.limb));
+  appData.musharatah = { intention, limbs, date: currentDayKey() };
+  if (intention || limbs.length) recordActivity();
+  if (!saveOrRollback(before)) return;
+  updateDisplay();
+  showToast('✅ تم توثيق المشارطة.');
+}
+function saveVigilanceNote() {
+  if (!ensureCurrentDay()) return;
+  const n = document.getElementById('vigilance-note').value.trim();
+  if (!n) return showToast('⚠️ اكتب خاطرة أولًا.');
+  const before = cloneAppData();
+  appData.vigilanceLog = appData.vigilanceLog || [];
+  appData.vigilanceLog.push({ text: n, date: currentDayKey() });
+  if (appData.vigilanceLog.length > 50) appData.vigilanceLog.shift();
+  recordActivity();
+  if (!saveOrRollback(before)) return;
+  document.getElementById('vigilance-note').value = '';
+  updateDisplay();
+  showToast('✅ تمت الإضافة.');
+}
+function saveMuhasabah() {
+  if (!ensureCurrentDay()) return;
+  const before = cloneAppData();
+  appData.muhasabah = {
+    why: document.getElementById('diwan-why').value.trim(),
+    how: document.getElementById('diwan-how').value.trim(),
+    whom: document.getElementById('diwan-whom').value.trim()
+  };
+  if (appData.muhasabah.why || appData.muhasabah.how || appData.muhasabah.whom) recordActivity();
+  if (!saveOrRollback(before)) return;
+  updateDisplay();
+  showToast('✅ تم حفظ المحاسبة.');
+}
+function saveCorrection() {
+  if (!ensureCurrentDay()) return;
+  const action = document.getElementById('correction-action').value.trim();
+  if (!action) return showToast('⚠️ اكتب خطة المعاقبة.');
+  const before = cloneAppData();
+  appData.muatabah = { ...(appData.muatabah || {}), correctionAction: action, correctionDate: currentDayKey() };
+  recordActivity();
+  if (!saveOrRollback(before)) return;
+  updateDisplay();
+  renderCorrectionDisplay();
+  showToast('✅ تم الحفظ.');
+}
+function saveMuatabah() {
+  if (!ensureCurrentDay()) return;
+  const n = document.getElementById('muatabah-note').value.trim();
+  const checkedIds = Array.from(document.querySelectorAll('.muatabah-check:checked'))
+    .map(cb => cb.dataset.id).filter(Boolean);
+  if (!n && !checkedIds.length) return showToast('⚠️ اكتب عتابك أو اختر سؤالًا.');
+  const before = cloneAppData();
+  appData.muatabah = { ...(appData.muatabah || {}), note: n, checkedIds, date: currentDayKey() };
+  recordActivity();
+  if (!saveOrRollback(before)) return;
+  updateDisplay();
+  showToast('✅ تم حفظ المعاتبة.');
+}
+function saveMujahadah() {
+  if (!ensureCurrentDay()) return;
+  const before = cloneAppData();
+  const t = {};
+  document.querySelectorAll('.mujahadah-check').forEach(cb => {
+    const key = cb.dataset.task;
+    if (MUJAHADAH_KEYS.includes(key) || isCustomTaskKey(key)) t[key] = cb.checked;
+  });
+  Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).forEach(key => {
+    if (!(key in t)) t[key] = !!appData.mujahadah[key];
+  });
+  appData.mujahadah = t;
+  if (Object.values(t).some(Boolean)) recordActivity();
+  if (!saveOrRollback(before)) return;
+  updateDisplay();
+  showToast('✅ تم حفظ المجاهدة.');
+}
+function addCustomTask() {
+  if (!ensureCurrentDay()) return;
+  const input = document.getElementById('new-task-input');
+  if (!input) return showToast('⚠️ تعذّر العثور على حقل المهمة.');
+  const raw = input.value;
+  if (!raw || !raw.trim()) return showToast('⚠️ اكتب نصّ المهمة أولًا.');
+  const label = raw.trim();
+  if ([...label].length > MAX_CUSTOM_TASK_LENGTH) return showToast('⚠️ اجعل اسم المهمة 80 حرفًا أو أقل.');
+  const key = 'مخصص:' + label;
+  const existing = Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey);
+  if (Object.prototype.hasOwnProperty.call(appData.mujahadah || {}, key)) return showToast('ℹ️ هذه المهمة موجودة بالفعل.');
+  if (existing.length >= MAX_CUSTOM_TASKS) return showToast('⚠️ وصلت إلى الحد الأقصى وهو 30 مهمة مخصصة.');
+  const before = cloneAppData();
+  appData.mujahadah = { ...(appData.mujahadah || {}), [key]: false };
+  if (!saveOrRollback(before)) return;
+  input.value = '';
+  renderCustomTasks();
+  updateDisplay();
+  showToast('✅ أُضيفت المهمة.');
+}
+
+/* ═══════════════════════ حساب العمر ═══════════════════════ */
+function calculateLife(showMsg) {
+  const by = Number.parseInt(document.getElementById('birth-year').value, 10);
+  if (!Number.isInteger(by) || by < 1900 || by > new Date().getFullYear()) {
+    if (showMsg) showToast("⚠️ أدخل سنة صحيحة.");
+    return;
+  }
+  const before = cloneAppData();
+  appData.birthYear = by;
+  if (!saveOrRollback(before)) return;
+  const start = new Date(by, 0, 1);
+  const now = new Date();
+  const days = Math.max(0, Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 86400000));
+  const hours = days * 24;
+  const breaths = hours * 60 * 12;
+  document.getElementById('days-lived').innerText    = '≈ ' + days.toLocaleString('ar-EG');
+  document.getElementById('hours-lived').innerText   = '≈ ' + hours.toLocaleString('ar-EG');
+  document.getElementById('breaths-lived').innerText = '≈ ' + breaths.toLocaleString('ar-EG');
+  const archivedWasted = appData.history.reduce((s,h) => s + (h.empties||0), 0);
+  document.getElementById('hours-wasted').innerText = (archivedWasted + (appData.empties||0)).toLocaleString('ar-EG');
+  if (showMsg) showToast("⏳ تقدير تقريبي.");
+}
+
+/* ═══════════════════════ السجل والرسم ═══════════════════════ */
+function renderHistoryAndChart() {
+  const c = document.getElementById('history-container');
+  const chart = document.getElementById('analytics-chart');
+  if (!c) return;
+
+  const byDate = new Map((appData.history || []).map(item => [item.date, item]));
+  const items = [];
+  const todayDate = new Date();
+  for (let offset = 6; offset >= 0; offset--) {
+    const d = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() - offset);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const archivedItem = byDate.get(key);
+    items.push(key === currentDayKey()
+      ? { date:key, lights:appData.lights, darks:appData.darks, empties:appData.empties, isToday:true }
+      : (archivedItem || { date:key, lights:0, darks:0, empties:0 }));
+  }
+
+  if (chart) {
+    const totals = items.map(x => (x.lights||0) + (x.darks||0) + (x.empties||0));
+    const maxT = Math.max(1, ...totals);
+    chart.innerHTML = items.map(item => {
+      const total = (item.lights||0) + (item.darks||0) + (item.empties||0);
+      const h = total === 0 ? 3 : Math.max(8, Math.round((total / maxT) * 100));
+      const ring = item.isToday ? 'ring-2 ring-islamic-gold' : '';
+      const bg = item.isToday ? 'bg-islamic-gold' : 'bg-emerald-500';
+      // ✅ إصلاح تجميلي (ب) : تسمية رقمية لاتينية بدل الهجرية المقتطعة
+      const label = item.isToday ? 'اليوم' : formatNumericShortDate(item.date);
+      return `<div class="flex-1 flex flex-col items-center gap-1 h-full justify-end group relative">
+        <div class="absolute -top-8 bg-islamic-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
+          طاعة ${item.lights||0} · معصية ${item.darks||0} · غفلة ${item.empties||0}
+        </div>
+        <div class="chart-bar w-full ${bg} ${ring} rounded-t" style="height:${h}%"></div>
+        <span class="text-[9px] text-slate-600 truncate max-w-[34px]">${esc(label)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  if (!appData.history.length) {
+    c.innerHTML = '<p class="text-slate-400 text-center py-4">لا يوجد سجل سابق.</p>';
+    return;
+  }
+  c.innerHTML = appData.history.map(item => `
+    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+      <span class="font-bold text-islamic-800 text-[12px]">${esc(formatArabicDate(item.date))}</span>
+      <div class="flex flex-wrap gap-3 mt-1 text-[11px]">
+        <span class="text-emerald-700">🟢 ${item.lights||0}</span>
+        <span class="text-rose-700">🔴 ${item.darks||0}</span>
+        <span class="text-amber-700">🟡 ${item.empties||0}</span>
+        <span class="text-islamic-700">💪 ${item.mujahadahCount||0}/${item.mujahadahTotal || Math.max(MUJAHADAH_KEYS.length, item.mujahadahCount || 0)}</span>
+        <span class="text-slate-600">🕐 ${item.hoursFilled||0}</span>
+      </div>
+      ${item.muhasabah?.why ? `<div class="text-[11px] text-slate-700 mt-2"><b>لِمَ:</b> ${esc(item.muhasabah.why)}</div>` : ''}
+      ${item.muatabah?.note ? `<div class="text-[11px] text-slate-700 mt-1"><b>المعاتبة:</b> ${esc(item.muatabah.note)}</div>` : ''}
+      ${item.muatabah?.correctionAction ? `<div class="text-[11px] text-amber-800 mt-1"><b>المعاقبة:</b> ${esc(item.muatabah.correctionAction)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════ الإشعارات ═══════════════════════ */
+const NOTIF_ICON = './icon-192.png';
+
+function withinWindow(hhmm, start, hours) {
+  const [cH, cM] = hhmm.split(':').map(Number);
+  const [sH, sM] = start.split(':').map(Number);
+  const cur = cH * 60 + cM;
+  const s = sH * 60 + sM;
+  const duration = Math.max(0, Math.min(24 * 60, hours * 60));
+  if (duration === 0) return false;
+  if (duration === 24 * 60) return true;
+  const end = s + duration;
+  return end < 1440 ? (cur >= s && cur < end) : (cur >= s || cur < end - 1440);
+}
+async function getSWReg() {
+  if (!('serviceWorker' in navigator)) return null;
+  return Promise.race([
+    navigator.serviceWorker.ready.catch(() => null),
+    new Promise(resolve => setTimeout(() => resolve(null), 1500))
+  ]);
+}
+async function showAppNotification(title, body, tag) {
+  // ① داخل Capacitor (APK أندرويد): استخدم الإشعارات الأصلية
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    try {
+      const { LocalNotifications } = Capacitor.Plugins;
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: Math.floor(Date.now() / 1000) % 2147483647,
+          title: title,
+          body: body,
+          schedule: { at: new Date(Date.now() + 200) },
+          iconColor: '#0d261e'
+        }]
+      });
+      return true;
+    } catch (err) {
+      console.warn('فشل إشعار Capacitor:', err);
+    }
+  }
+
+  // ② في المتصفح العادي: الطريقة الاعتيادية
+  const reg = await getSWReg();
+  if (reg && typeof reg.showNotification === 'function') {
+    try {
+      await reg.showNotification(title, {
+        body, tag, icon: NOTIF_ICON, badge: NOTIF_ICON, dir: 'rtl', lang: 'ar'
+      });
+      return true;
+    } catch (_) {}
+  }
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body, tag, icon: NOTIF_ICON });
+      return true;
+    }
+  } catch (_) {}
+  return false;
+}
+async function saveNotificationSettings() {
+  const m = document.getElementById('notif-morning').value;
+  const e = document.getElementById('notif-evening').value;
+  if (!isValidTime(m) || !isValidTime(e)) return showToast('⚠️ أدخل وقتًا صحيحًا بين 00:00 و23:59.');
+  const st = document.getElementById('notif-status');
+
+  // في Capacitor: الإشعارات الأصلية أولًا — لا نمرّ بفحص Notification
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    const before = cloneAppData();
+    appData.notifications = {
+      morning: m,
+      evening: e,
+      enabled: true,
+      lastFired: appData.notifications?.lastFired || {}
+    };
+    if (!saveOrRollback(before)) return;
+    await scheduleDailyNotifications();
+    if (st) st.innerText = `✅ مفعّل (صباح ${m}، مساء ${e})`;
+    showToast('🔔 تم التفعيل.');
+    return;
+  }
+
+  // في المتصفح العادي: المسار الاعتيادي
+  if (!('Notification' in window)) {
+    const before = cloneAppData();
+    appData.notifications = { ...(appData.notifications || {}), morning: m, evening: e, enabled: false };
+    if (!saveOrRollback(before)) return;
+    if (st) st.innerText = '⚠️ المتصفح لا يدعم الإشعارات.';
+    return;
+  }
+  try {
+    if (Notification.permission === 'default') await Notification.requestPermission();
+  } catch (err) {
+    console.warn('تعذّر طلب إذن الإشعارات:', err);
+    if (st) st.innerText = '⚠️ تعذّر طلب الإذن؛ تحقق من إعدادات المتصفح.';
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    const before = cloneAppData();
+    appData.notifications = { ...(appData.notifications || {}), morning: m, evening: e, enabled: false };
+    if (!saveOrRollback(before)) return;
+    if (st) st.innerText = '⚠️ الإذن مرفوض — التذكير داخل التطبيق فقط.';
+    return;
+  }
+  const before = cloneAppData();
+  appData.notifications = { morning: m, evening: e, enabled: true, lastFired: appData.notifications?.lastFired || {} };
+  if (!saveOrRollback(before)) return;
+  if (st) st.innerText = `✅ مفعّل (صباح ${m}، مساء ${e})`;
+  await scheduleDailyNotifications();
+  showToast('🔔 تم التفعيل.');
+}
+async function scheduleDailyNotifications() {
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
+  const n = appData.notifications;
+  if (!n || !n.enabled) return;
+
+  try {
+    const { LocalNotifications } = Capacitor.Plugins;
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== 'granted') return;
+
+    await LocalNotifications.cancel({ notifications: [{ id: 1001 }, { id: 1002 }] });
+
+    const [mH, mM] = n.morning.split(':').map(Number);
+    const [eH, eM] = n.evening.split(':').map(Number);
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: 1001,
+          title: '☀️ وقت المشارطة',
+          body: 'اشرط على نفسك حفظ اليوم.',
+          schedule: { on: { hour: mH, minute: mM }, repeats: true, allowWhileIdle: true },
+          iconColor: '#0d261e'
+        },
+        {
+          id: 1002,
+          title: '🌙 وقت المحاسبة',
+          body: 'افتح خزائن أوقاتك الـ24.',
+          schedule: { on: { hour: eH, minute: eM }, repeats: true, allowWhileIdle: true },
+          iconColor: '#0d261e'
+        }
+      ]
+    });
+    console.log('✅ تمت جدولة الإشعارات اليومية.');
+  } catch (err) {
+    console.warn('تعذّرت جدولة الإشعارات:', err);
+  }
+}
+
+async function checkAndFireNotifications() {
+  // في Capacitor: الجدولة الأصلية تتولى الإشعارات. لا داعي للتكرار.
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) return;
+  const n = appData.notifications;
+  if (!n?.enabled) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  const hhmm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const today = currentDayKey();
+  n.lastFired = n.lastFired || {};
+  if (n.morning && n.lastFired.morning !== today && withinWindow(hhmm, n.morning, 2)) {
+    if (await showAppNotification('☀️ وقت المشارطة', 'اشرط على نفسك حفظ اليوم.', 'muhasabah-morning')) {
+      appData.notifications.lastFired.morning = today;
+      save();
+      return;
+    }
+  }
+  if (n.evening && n.lastFired.evening !== today && withinWindow(hhmm, n.evening, 2)) {
+    if (await showAppNotification('🌙 وقت المحاسبة', 'افتح خزائن أوقاتك الـ24.', 'muhasabah-evening')) {
+      appData.notifications.lastFired.evening = today;
+      save();
+      return;
+    }
+  }
+}
+
+/* ═══════════════════════ التصدير والاستيراد ═══════════════════════ */
+function exportData() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `muhasabah_${currentDayKey()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast("📤 تم التصدير.");
+}
+function importData(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) return showToast("⚠️ الملف كبير جدًا.");
+  if (!confirm('سيستبدل الاستيراد كل بياناتك الحالية. هل أنت متأكد؟')) {
+    event.target.value = ''; return;
+  }
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const raw = JSON.parse(String(fr.result || ''));
+      const imported = validateImport(raw);
+      const previous = appData;
+      appData = imported;
+      if (!save()) { appData = previous; return; }
+      updateDisplay(); restoreFormState();
+      if (appData.birthYear) calculateLife(false);
+      showToast('📥 تم الاستيراد بنجاح.');
+    } catch (err) {
+      console.error('فشل استيراد البيانات:', err);
+      showToast('⚠️ الملف غير صالح أو لا يخص التطبيق؛ لم تُغيّر بياناتك.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  fr.onerror = () => { showToast('⚠️ تعذّرت قراءة الملف.'); event.target.value = ''; };
+  fr.readAsText(file, 'UTF-8');
+}
+
+/* ═══════════════════════ Toast ═══════════════════════ */
+// ✅ إصلاح تجميلي (ج) : role=status + aria-live لقارئ الشاشة
+function showToast(msg) {
+  document.querySelectorAll('.app-toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'app-toast fixed bottom-6 left-1/2 -translate-x-1/2 bg-islamic-800 text-islamic-gold px-4 py-3 rounded-xl shadow-xl text-xs z-50 border border-islamic-gold/40 text-center max-w-[90%]';
+  t.setAttribute('role', 'status');
+  t.setAttribute('aria-live', 'polite');
+  t.setAttribute('aria-atomic', 'true');
+  t.innerText = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function exportRecoveryBackup() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORAGE_KEY + '_recovery_backup'); } catch (_) {}
+  if (!raw) return showToast('لا توجد نسخة استرداد محفوظة.');
+  const blob = new Blob([raw], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `muhasabah_recovery_${currentDayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('تم تنزيل النسخة الخام للاسترداد؛ لم تُعتمد تلقائيًا.');
+}
+function showRecoveryPanel() {
+  if (!storageRecoveryWarning || document.getElementById('storage-recovery-panel')) return;
+  const panel = document.createElement('section');
+  panel.id = 'storage-recovery-panel';
+  panel.className = 'fixed top-20 inset-x-3 z-[60] mx-auto max-w-md rounded-xl border-2 border-amber-400 bg-amber-50 p-4 shadow-xl text-amber-950';
+  panel.setAttribute('role', 'alert');
+  const title = document.createElement('h2');
+  title.className = 'font-bold text-sm mb-2';
+  title.textContent = 'تنبيه: تعذّرت قراءة بياناتك السابقة';
+  const message = document.createElement('p');
+  message.className = 'text-xs leading-relaxed mb-3';
+  message.textContent = storageRecoveryWarning + ' نزّل الملف واحتفظ به قبل إدخال تغييرات جديدة. النسخة الخام قد تحتاج إلى إصلاح ولا تُستعاد تلقائيًا.';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'w-full rounded-lg bg-amber-800 px-3 py-2 text-xs font-bold text-white';
+  button.textContent = 'تنزيل نسخة الاسترداد الخام';
+  button.addEventListener('click', exportRecoveryBackup);
+  // ✅ زر إخفاء مؤقت: يزيل اللوحة من الشاشة دون مساس بالبيانات
+  const dismiss = document.createElement('button');
+  dismiss.type = 'button';
+  dismiss.className = 'mt-2 w-full rounded-lg bg-white border border-amber-400 px-3 py-2 text-xs font-bold text-amber-900';
+  dismiss.textContent = 'إخفاء التنبيه حتى إعادة التحميل';
+  dismiss.addEventListener('click', () => panel.remove());
+  panel.append(title, message, button, dismiss);
+  document.body.appendChild(panel);
+}
+
+/* ═══════════════════════ PWA ═══════════════════════ */
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); deferredPrompt = e;
+  const b = document.getElementById('pwa-install-banner');
+  if (b) b.classList.replace('hidden', 'flex');
+});
+document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    const b = document.getElementById('pwa-install-banner');
+    if (b) b.classList.replace('flex', 'hidden');
+  }
+  deferredPrompt = null;
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(err => console.warn('تعذّر تسجيل عامل الخدمة:', err));
+  });
+}
+
+/* ═══════════════════════ الإقلاع ═══════════════════════ */
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    if (rolloverIfNeeded()) updateDisplay();
+    checkAndFireNotifications();
+  }
+});
+window.addEventListener('focus', () => {
+  if (rolloverIfNeeded()) updateDisplay();
+});
+
+window.addEventListener('load', () => {
+  rolloverIfNeeded();
+  restoreFormState();
+  updateDisplay();
+  rotateQuote();
+  renderLibrary();
+  if (appData.birthYear) calculateLife(false);
+  checkAndFireNotifications();
+  if (storageRecoveryWarning) showRecoveryPanel();
+  setInterval(checkAndFireNotifications, 60000);
+  setInterval(() => {
+    if (rolloverIfNeeded()) { updateDisplay(); }
+  }, 60000);
+});
+</script>
+</body>
+</html>
