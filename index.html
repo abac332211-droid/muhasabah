@@ -327,10 +327,10 @@ tailwind.config = {
 
     <div class="border-t pt-3 space-y-2">
       <h4 class="font-bold text-islamic-800 text-xs">🔔 التذكير</h4>
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-[10px] text-amber-900 leading-relaxed mb-2">
-        <b>⚠️ تنبيه تقني صريح:</b> الإشعارات هنا تعمل <b>فقط عندما يكون التطبيق مفتوحًا</b> (أو في الخلفية القريبة).
-        <b>لا تعمل عندما يكون التطبيق مغلقًا تمامًا</b> — هذا قيد في تطبيقات الويب المثبّتة (PWA)، وليس خللًا في التطبيق.
-      </div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-[10px] text-emerald-900 leading-relaxed mb-2">
+  <b>✅ الإشعارات تعمل بكامل طاقتها:</b> في نسخة أندرويد (APK)، تصلك التذكيرات <b>حتى لو كان التطبيق مغلقًا تمامًا</b>.
+  في نسخة الويب (PWA)، تعمل عند فتح التطبيق أو وجوده في الخلفية القريبة.
+</div>
       <p class="text-[10px] text-slate-500 leading-relaxed mb-2">
         <b>على iPhone/iPad:</b> يتطلب تثبيت التطبيق على الشاشة الرئيسية (iOS 16.4+) حتى تعمل الإشعارات.
         افتح التطبيق من Safari ← زر المشاركة ← «إضافة إلى الشاشة الرئيسية».
@@ -1389,7 +1389,14 @@ async function scheduleDailyNotifications() {
     const perm = await LocalNotifications.requestPermissions();
     if (perm.display !== 'granted') return;
 
-    await LocalNotifications.cancel({ notifications: [{ id: 1001 }, { id: 1002 }] });
+    /* ✅ إلغاء كل الإشعارات المعلّقة — ليس فقط 1001 و1002 */
+    try {
+      const pending = await LocalNotifications.getPending();
+      if (pending && pending.notifications && pending.notifications.length > 0) {
+        const toCancel = pending.notifications.map(n => ({ id: n.id }));
+        await LocalNotifications.cancel({ notifications: toCancel });
+      }
+    } catch (_) { /* تجاهل */ }
 
     const [mH, mM] = n.morning.split(':').map(Number);
     const [eH, eM] = n.evening.split(':').map(Number);
@@ -1564,17 +1571,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-/* ═══════════════════════ الإقلاع ═══════════════════════ */
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    if (rolloverIfNeeded()) updateDisplay();
-    checkAndFireNotifications();
-  }
-});
-window.addEventListener('focus', () => {
-  if (rolloverIfNeeded()) updateDisplay();
-});
-
 window.addEventListener('load', () => {
   rolloverIfNeeded();
   restoreFormState();
@@ -1589,6 +1585,28 @@ window.addEventListener('load', () => {
     if (rolloverIfNeeded()) { updateDisplay(); }
   }, 60000);
 });
+
+/* ✅ التعامل مع زر الرجوع في أندرويد (Capacitor) */
+if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+  const CapApp = Capacitor.Plugins.App;
+  if (CapApp && typeof CapApp.addListener === 'function') {
+    CapApp.addListener('backButton', () => {
+      const visibleTab = document.querySelector('.tab-content:not(.hidden)');
+      const isOnMainTab = visibleTab && visibleTab.id === 'tab-musharatah';
+      const panel = document.getElementById('storage-recovery-panel');
+
+      if (panel) { panel.remove(); return; }
+
+      if (!isOnMainTab) { switchTab('musharatah'); return; }
+
+      if (typeof CapApp.minimizeApp === 'function') {
+        CapApp.minimizeApp();
+      } else if (typeof CapApp.exitApp === 'function') {
+        CapApp.exitApp();
+      }
+    });
+  }
+}
 </script>
 </body>
 </html>
