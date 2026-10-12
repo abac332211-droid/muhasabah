@@ -1,0 +1,22 @@
+{
+  "appId": "io.github.abac332211.muhasabah",
+  "appName": "مُحاسب النَّفْس",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#f8fafc"
+  },
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#0d261e",
+      "sound": "beep.wav"
+    }
+  }
+}
