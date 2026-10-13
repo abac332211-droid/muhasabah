@@ -1,12 +1,12 @@
 /* Service Worker — محاسبة النفس
- * الشبكة أولًا، ثم النسخة المحلية عند انقطاع الاتصال.
- * لا تُخزَّن استجابات الأخطاء، ولا تُعترض الطلبات غير GET.
+ * تجميع كامل للواجهة والخطوط عند التثبيت (مرة واحدة مع الإنترنت).
  */
 'use strict';
 
-const CACHE_VERSION = 'muhasabat-shell-v5';
-const RUNTIME_CACHE = 'muhasabat-runtime-v5';
+const CACHE_VERSION = 'muhasabat-shell-v6';
+const RUNTIME_CACHE = 'muhasabat-runtime-v6';
 const SCOPE_URL = self.registration.scope;
+
 const SHELL = [
   './',
   './index.html',
@@ -15,6 +15,13 @@ const SHELL = [
   './icon-512.png',
   './icon-maskable-512.png'
 ].map(path => new URL(path, SCOPE_URL).href);
+
+/* مصادر خارجية تُجمَّع عند التثبيت */
+const EXTERNAL_PRECACHE = [
+  'https://cdn.tailwindcss.com',
+  'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap'
+];
+
 const INDEX_URL = new URL('./index.html', SCOPE_URL).href;
 const HOME_URL = new URL('./', SCOPE_URL).href;
 const EXTERNAL_CACHE_HOSTS = new Set([
@@ -26,13 +33,37 @@ const EXTERNAL_CACHE_HOSTS = new Set([
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_VERSION);
-    // فشل مورد اختياري لا يمنع تثبيت عامل الخدمة.
+
+    /* 1) الملفات الداخلية */
     await Promise.all(SHELL.map(async url => {
       try {
-        const response = await fetch(url, { cache: 'reload' });
-        if (response.ok) await cache.put(url, response.clone());
-      } catch (_) { /* تتم إعادة المحاولة عند الاتصال */ }
+        const r = await fetch(url, { cache: 'reload' });
+        if (r.ok) await cache.put(url, r.clone());
+      } catch (_) { /* تجاهل */ }
     }));
+
+    /* 2) Tailwind + Google Fonts CSS */
+    await Promise.all(EXTERNAL_PRECACHE.map(async url => {
+      try {
+        const r = await fetch(url, { mode: 'cors', cache: 'reload' });
+        if (!r.ok) return;
+        await cache.put(url, r.clone());
+
+        /* 3) استخرج روابط WOFF2 من CSS الخطوط، وجمّعها */
+        if (url.indexOf('fonts.googleapis.com') !== -1) {
+          const css = await r.clone().text();
+          const matches = css.match(/https:\/\/fonts\.gstatic\.com\/[^)'"\s]+/g) || [];
+          const uniqueUrls = Array.from(new Set(matches));
+          await Promise.all(uniqueUrls.map(async fontUrl => {
+            try {
+              const fr = await fetch(fontUrl, { mode: 'cors' });
+              if (fr.ok) await cache.put(fontUrl, fr.clone());
+            } catch (_) { /* تجاهل */ }
+          }));
+        }
+      } catch (_) { /* تجاهل */ }
+    }));
+
     await self.skipWaiting();
   })());
 });
@@ -60,33 +91,36 @@ async function networkFirst(request, cacheName) {
   }
 }
 
+/* cache-first للمصادر الخارجية — لأنها مُجمَّعة مسبقًا */
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  try {
+    const response = await fetch(request);
+    if (response && (response.ok || response.type === 'opaque')) {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch (_) {
+    return new Response('', { status: 503, statusText: 'Offline' });
+  }
+}
+
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+
+  /* المصادر الخارجية — cache-first */
   if (url.origin !== self.location.origin) {
     if (!EXTERNAL_CACHE_HOSTS.has(url.hostname)) return;
-    const update = (async () => {
-      const cache = await caches.open(RUNTIME_CACHE);
-      const response = await fetch(request);
-      if (response && (response.ok || response.type === 'opaque')) {
-        await cache.put(request, response.clone());
-      }
-      return response;
-    })();
-    // الانتظار مهم حتى لا يُلغى تحديث ذاكرة CDN المؤقتة بعد الرد.
-    event.waitUntil(update.then(() => undefined).catch(() => undefined));
-    event.respondWith((async () => {
-      const cache = await caches.open(RUNTIME_CACHE);
-      const cached = await cache.match(request);
-      if (cached) return cached;
-      try { return await update; }
-      catch (_) { return new Response('', { status: 503, statusText: 'Offline' }); }
-    })());
+    event.respondWith(cacheFirst(request, CACHE_VERSION));
     return;
   }
 
+  /* التنقل — network-first */
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       try {
@@ -109,6 +143,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  /* الأصول الداخلية — network-first مع cache fallback */
   event.respondWith(networkFirst(request, CACHE_VERSION).catch(() =>
     new Response('تعذّر تحميل المورد دون اتصال.', {
       status: 503,
