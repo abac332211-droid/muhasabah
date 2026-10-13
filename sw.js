@@ -3,8 +3,8 @@
  */
 'use strict';
 
-const CACHE_VERSION = 'muhasabat-shell-v6';
-const RUNTIME_CACHE = 'muhasabat-runtime-v6';
+const CACHE_VERSION = 'muhasabat-shell-v7';
+const RUNTIME_CACHE = 'muhasabat-runtime-v7';
 const SCOPE_URL = self.registration.scope;
 
 const SHELL = [
