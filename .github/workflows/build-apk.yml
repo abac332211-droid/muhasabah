@@ -28,13 +28,49 @@ jobs:
       - name: Install npm dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Prepare www directory
+      - name: Prepare www with local Tailwind + Fonts
         run: |
-          mkdir -p www
+          set -u
+          mkdir -p www/vendor
           cp index.html www/
           cp sw.js www/ 2>/dev/null || echo "no sw.js"
           cp manifest.json www/ 2>/dev/null || echo "no manifest.json"
           cp icon-*.png www/ 2>/dev/null || echo "no icons"
+
+          # 1) Tailwind Play CDN → ملف محلي
+          curl -sL "https://cdn.tailwindcss.com" -o www/vendor/tailwind.js
+          echo "✅ Tailwind: $(du -h www/vendor/tailwind.js | cut -f1)"
+
+          # 2) Google Fonts CSS — UA حديث للحصول على woff2 فقط
+          curl -sL \
+            -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36' \
+            'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap' \
+            -o www/vendor/fonts.css
+          echo "✅ Fonts CSS: $(du -h www/vendor/fonts.css | cut -f1)"
+
+          # 3) استخرج روابط woff2 وحمّلها محليًا
+          grep -oE 'https://fonts\.gstatic\.com/[^)]+\.woff2' www/vendor/fonts.css | sort -u > /tmp/font_urls.txt
+          echo "✅ عدد ملفات الخطوط: $(wc -l < /tmp/font_urls.txt)"
+          while IFS= read -r url; do
+            fname=$(basename "$url")
+            curl -sL "$url" -o "www/vendor/$fname"
+          done < /tmp/font_urls.txt
+
+          # 4) أعِد كتابة CSS ليستخدم الملفات المحلية
+          sed -i -E 's|https://fonts\.gstatic\.com/[^)]+/([^/)]+)|./\1|g' www/vendor/fonts.css
+
+          # 5) استبدل روابط CDN في index.html بالنسخ المحلية
+          sed -i 's|<script src="https://cdn\.tailwindcss\.com"></script>|<script src="./vendor/tailwind.js"></script>|' www/index.html
+          sed -i -E 's|<link href="https://fonts\.googleapis\.com/css2[^"]*" rel="stylesheet">|<link href="./vendor/fonts.css" rel="stylesheet">|' www/index.html
+
+          # 6) تحقق من نجاح الاستبدال
+          echo "---- التحقق من index.html ----"
+          echo "Tailwind محلي: $(grep -c 'vendor/tailwind.js' www/index.html)"
+          echo "Fonts محلي:    $(grep -c 'vendor/fonts.css' www/index.html)"
+
+          echo "---- محتوى www/vendor ----"
+          ls -la www/vendor/
+          echo "---- محتوى www ----"
           ls -la www/
 
       - name: Add Android platform
