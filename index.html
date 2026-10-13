@@ -34,8 +34,77 @@ tailwind.config = {
   .tab-scroll::-webkit-scrollbar { display:none; }
   .fade-in { animation: fadeIn .25s ease-out; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
-  .chart-bar { transition: height .4s ease; }
+    .chart-bar { transition: height .4s ease; }
   .hour-cell { transition: background .15s, color .15s; }
+  /* ✅ إبراز التركيز للوصولية (لوحة المفاتيح + قارئ الشاشة) */
+  *:focus-visible {
+    outline: 2px solid #d4af37;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+    button:focus-visible {
+    outline-offset: 3px;
+  }
+
+  /* ✅ Modal موحّد */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(13,38,30,0.65);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 16px;
+    animation: fadeIn .2s ease-out;
+  }
+  .modal-card {
+    background: #ffffff; border-radius: 20px;
+    padding: 22px; width: 100%; max-width: 440px;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25),
+                0 8px 10px -6px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+  }
+  .modal-header {
+    font-size: 17px; font-weight: 700; margin-bottom: 12px;
+    color: #0d261e;
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #d4af37;
+  }
+  .modal-body {
+    font-size: 14px; color: #334155; line-height: 1.7;
+    margin-bottom: 18px;
+  }
+  .modal-body p { margin: 0 0 10px; }
+  .modal-body p:last-child { margin-bottom: 0; }
+  .modal-body b, .modal-body strong { color: #0d261e; }
+  .modal-body input {
+    width: 100%; padding: 12px; margin-top: 8px;
+    border: 1px solid #cbd5e1; border-radius: 10px;
+    font-size: 15px; background: #fff; color: #1e293b;
+    font-family: inherit; box-sizing: border-box;
+  }
+  .modal-body input:focus {
+    outline: none; border-color: #1b4d3e;
+    box-shadow: 0 0 0 3px rgba(27,77,62,0.15);
+  }
+  .modal-footer {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding-top: 14px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .modal-footer button {
+    flex: 1; min-width: 80px;
+    padding: 11px 14px; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    border: 0; cursor: pointer; font-family: inherit;
+    transition: background .15s, transform .1s;
+  }
+  .modal-footer button:active { transform: scale(0.98); }
+  .modal-btn-primary { background: #1b4d3e; color: #fff; }
+  .modal-btn-primary:hover { background: #14382d; }
+  .modal-btn-ghost { background: #f1f5f9; color: #334155; }
+  .modal-btn-ghost:hover { background: #e2e8f0; }
+  .modal-btn-danger { background: #b91c1c; color: #fff; }
+  .modal-btn-danger:hover { background: #991b1b; }
 </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
@@ -321,22 +390,26 @@ tailwind.config = {
       <h4 class="font-bold text-islamic-700 text-xs">تطور الأداء (آخر 7 أيام):</h4>
       <div id="analytics-chart" class="h-32 flex items-end gap-1.5 pt-4 px-2 border-b border-slate-300"></div>
       <div class="flex justify-between text-[9px] text-slate-500 px-1"><span>الأقدم</span><span>اليوم</span></div>
-      <p class="text-[10px] text-slate-500 text-center">العمود الذهبي = اليوم، الأخضر = أيام مكتملة.</p>
+      <p class="text-[10px] text-slate-500 text-center">الذهبي = اليوم، الأخضر = يوم له سجل، الرمادي = لا يوجد سجل.</p>
     </div>
+    <div class="bg-white p-3 rounded-xl border border-slate-200">
+  <h4 class="font-bold text-islamic-700 text-xs mb-2">🧠 تحليل الأسبوع</h4>
+  <div id="weeklyInsights"></div>
+</div>
     <div id="history-container" class="space-y-2 text-xs"></div>
 
     <div class="border-t pt-3 space-y-2">
       <h4 class="font-bold text-islamic-800 text-xs">🔔 التذكير</h4>
       <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-[10px] text-emerald-900 leading-relaxed mb-2">
-  <b>✅ الإشعارات تعمل بكامل طاقتها:</b> في نسخة أندرويد (APK)، تصلك التذكيرات <b>حتى لو كان التطبيق مغلقًا تمامًا</b>.
-  في نسخة الويب (PWA)، تعمل عند فتح التطبيق أو وجوده في الخلفية القريبة.
+  <b>تنبيه مهم:</b> في نسخة أندرويد (APK)، تعتمد التذكيرات عند إغلاق التطبيق على نجاح جدولة الإشعارات الأصلية ومنح الأذونات، وقد تختلف القيود حسب الجهاز وإعدادات البطارية.
+  في نسخة الويب (PWA)، التذكيرات داخلية وتعتمد على بقاء الصفحة/التطبيق نشطًا أو عودته للمقدمة؛ لا يُضمن وصولها بعد إغلاقه.
 </div>
       <p class="text-[10px] text-slate-500 leading-relaxed mb-2">
         <b>على iPhone/iPad:</b> يتطلب تثبيت التطبيق على الشاشة الرئيسية (iOS 16.4+) حتى تعمل الإشعارات.
         افتح التطبيق من Safari ← زر المشاركة ← «إضافة إلى الشاشة الرئيسية».
       </p>
       <p class="text-[10px] text-slate-500 leading-relaxed">
-        تذكيرات داخلية تُطلق عند فتح التطبيق أو رجوعه للمقدمة. يلزم منح الإذن مرّة واحدة.
+        تذكيرات ويب داخلية تُفحص عند فتح التطبيق وعودته للمقدمة وأثناء بقائه نشطًا؛ لا تُعد بديلًا مضمونًا عن إشعارات خادمية عند إغلاق التطبيق. يلزم منح الإذن مرّة واحدة.
       </p>
       <div class="grid grid-cols-2 gap-2">
         <div><label for="notif-morning" class="block text-[10px] text-slate-600 mb-1">وقت المشارطة:</label><input type="time" id="notif-morning" value="05:30" class="w-full text-sm p-2 rounded border border-slate-300 bg-white"></div>
@@ -355,6 +428,11 @@ tailwind.config = {
         <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
       </div>
     </div>
+<div class="border-t pt-3 space-y-2">
+  <h4 class="font-bold text-islamic-800 text-xs">📊 تحليل خارجي</h4>
+  <p class="text-[10px] text-slate-500">صدّر سجلك كملف CSV لفتحه في Excel أو Google Sheets.</p>
+  <button onclick="exportCSV()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-lg text-xs font-semibold">📊 تصدير CSV</button>
+</div>
 
     <div class="border-t pt-3 text-[10px] text-slate-500 leading-relaxed">
       <b>الخصوصية:</b> كل بياناتك تُخزَّن في متصفح جهازك فقط.
@@ -363,6 +441,15 @@ tailwind.config = {
 </div>
 
 </main>
+
+<!-- ✅ Modal موحّد عربي أنيق -->
+<div id="customModalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+  <div class="modal-card">
+    <div id="modalTitle" class="modal-header">تنبيه</div>
+    <div id="modalBody" class="modal-body"></div>
+    <div id="modalFooter" class="modal-footer"></div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════ أدوات آمنة ═══════════════════════ */
@@ -642,7 +729,28 @@ function save() {
     return false;
   }
 }
+/* ✅ مراقبة حجم التخزين — تنبيه قبل الامتلاء */
+function estimateStorageUsage() {
+  try {
+    let total = 0;
+    for (let key in localStorage) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
+        total += (localStorage[key] || '').length + key.length;
+      }
+    }
+    return total * 2; /* UTF-16: بايتان لكل حرف */
+  } catch (_) { return 0; }
+}
 
+function checkStorageQuota() {
+  const used = estimateStorageUsage();
+  const limit = 5 * 1024 * 1024; /* 5 MB — الحد الشائع */
+  const pct = Math.round((used / limit) * 100);
+  if (pct >= 80) {
+    showToast('⚠️ التخزين ' + pct + '% ممتلئ — صدّر نسخة احتياطية');
+  }
+  return pct;
+}
 /* ═══════════════════════ سلسلة الالتزام ═══════════════════════ */
 function yesterdayISO() {
   const d = new Date(); d.setDate(d.getDate() - 1);
@@ -702,21 +810,97 @@ function archiveFullDay() {
 }
 
 function collectDirtyFields() {
-  const ids = ['daily-intention','diwan-why','diwan-how','diwan-whom',
-               'muatabah-note','correction-action'];
+  // لا تعتبر القيم المحفوظة مسبقًا مسودات لمجرد أن الحقول ما زالت معبأة.
+  const fields = {
+    'daily-intention': appData.musharatah?.intention || '',
+    'diwan-why': appData.muhasabah?.why || '',
+    'diwan-how': appData.muhasabah?.how || '',
+    'diwan-whom': appData.muhasabah?.whom || '',
+    'muatabah-note': appData.muatabah?.note || '',
+    'correction-action': appData.muatabah?.correctionAction || ''
+  };
   const out = {};
-  ids.forEach(id => {
+  Object.entries(fields).forEach(([id, savedValue]) => {
     const el = document.getElementById(id);
-    if (el && el.value && el.value.trim()) out[id] = el.value;
+    if (el && el.value !== String(savedValue ?? '')) out[id] = el.value;
   });
   return out;
+}
+
+// التغييرات غير المحفوظة في مربعات الاختيار وبعض الحقول الأخرى تحفظ كمسودات
+// أثناء تبديل اليوم، لكنها لا تُكتب إلى بيانات اليوم الجديد تلقائيًا.
+function collectUnsavedControls() {
+  const drafts = { text: collectDirtyFields() };
+  const selected = selector => Array.from(document.querySelectorAll(selector + ':checked'))
+    .map(el => el.dataset.limb || el.dataset.id || el.dataset.task).filter(Boolean).sort();
+  const sameArray = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+  const limbSelected = selected('.limb-check');
+  const limbSaved = [...(appData.musharatah?.limbs || [])].sort();
+  if (!sameArray(limbSelected, limbSaved)) drafts.limbs = limbSelected;
+  const muatabahSelected = selected('.muatabah-check');
+  const muatabahSaved = [...(appData.muatabah?.checkedIds || [])].sort();
+  if (!sameArray(muatabahSelected, muatabahSaved)) drafts.muatabahChecks = muatabahSelected;
+
+  const taskChecks = Array.from(document.querySelectorAll('.mujahadah-check'));
+  const taskDraft = {};
+  let taskChanged = false;
+  taskChecks.forEach(cb => {
+    const key = cb.dataset.task;
+    if (!key) return;
+    taskDraft[key] = cb.checked;
+    if (cb.checked !== (appData.mujahadah?.[key] === true)) taskChanged = true;
+  });
+  if (taskChanged) drafts.tasks = taskDraft;
+
+  const birth = document.getElementById('birth-year');
+  if (birth && birth.value !== (appData.birthYear == null ? '' : String(appData.birthYear))) drafts.birthYear = birth.value;
+  for (const [id, saved] of [['notif-morning', appData.notifications?.morning || '05:30'], ['notif-evening', appData.notifications?.evening || '21:00']]) {
+    const el = document.getElementById(id);
+    if (el && el.value !== saved) drafts[id] = el.value;
+  }
+  const vigilance = document.getElementById('vigilance-note');
+  if (vigilance?.value.trim()) drafts.vigilanceNote = vigilance.value;
+  const taskInput = document.getElementById('new-task-input');
+  if (taskInput?.value.trim()) drafts.newTask = taskInput.value;
+  return drafts;
+}
+
+function applyUnsavedControls(drafts) {
+  if (!drafts) return;
+  Object.entries(drafts.text || {}).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  });
+  if (Array.isArray(drafts.limbs)) {
+    const set = new Set(drafts.limbs);
+    document.querySelectorAll('.limb-check').forEach(el => el.checked = set.has(el.dataset.limb));
+  }
+  if (Array.isArray(drafts.muatabahChecks)) {
+    const set = new Set(drafts.muatabahChecks);
+    document.querySelectorAll('.muatabah-check').forEach(el => el.checked = set.has(el.dataset.id));
+  }
+  if (drafts.tasks) document.querySelectorAll('.mujahadah-check').forEach(el => {
+    if (Object.prototype.hasOwnProperty.call(drafts.tasks, el.dataset.task)) el.checked = drafts.tasks[el.dataset.task];
+  });
+  if (Object.prototype.hasOwnProperty.call(drafts, 'birthYear')) {
+    const el = document.getElementById('birth-year'); if (el) el.value = drafts.birthYear;
+  }
+  for (const id of ['notif-morning','notif-evening']) if (Object.prototype.hasOwnProperty.call(drafts, id)) {
+    const el = document.getElementById(id); if (el) el.value = drafts[id];
+  }
+  if (Object.prototype.hasOwnProperty.call(drafts, 'vigilanceNote')) {
+    const el = document.getElementById('vigilance-note'); if (el) el.value = drafts.vigilanceNote;
+  }
+  if (Object.prototype.hasOwnProperty.call(drafts, 'newTask')) {
+    const el = document.getElementById('new-task-input'); if (el) el.value = drafts.newTask;
+  }
 }
 
 function rolloverIfNeeded() {
   const today = currentDayKey();
   if (appData.lastActiveDate === today) return false;
 
-  const dirty = collectDirtyFields();
+  const dirty = collectUnsavedControls();
   const before = cloneAppData();
   archiveFullDay();
   const yest = yesterdayISO();
@@ -736,12 +920,9 @@ function rolloverIfNeeded() {
 
   const ok = saveOrRollback(before);
 
-  // ✅ استرجاع الحقول أولًا — في كل الحالات
+  // استعد البيانات المحفوظة أولًا، ثم أعد المسودات التي تختلف عنها فقط.
   restoreFormState();
-  Object.entries(dirty).forEach(([id, v]) => {
-    const el = document.getElementById(id);
-    if (el) el.value = v;
-  });
+  applyUnsavedControls(dirty);
 
   // ✅ الآن نُقرّر: فشل أم نجاح
   if (!ok) {
@@ -749,8 +930,8 @@ function rolloverIfNeeded() {
     return false;
   }
 
-  if (Object.keys(dirty).length) {
-    showToast('🌅 يوم جديد — راجع الحقول غير المحفوظة قبل الحفظ.');
+  if (Object.keys(dirty.text || {}).length || Object.keys(dirty).some(k => !['text'].includes(k))) {
+    showToast('🌅 يوم جديد — احتُفظ بالمسودات في الحقول؛ راجعها واحفظ ما يلزم.');
   }
   return true;
 }
@@ -927,7 +1108,11 @@ function renderHoursGrid() {
                 : s === 'dark'  ? 'bg-rose-500 text-white border-rose-600'
                 : s === 'empty' ? 'bg-amber-400 text-white border-amber-500'
                 : 'bg-slate-100 text-slate-600 border-slate-300';
-      return `<button onclick="cycleHour(${i})" class="hour-cell ${cls} border rounded-lg py-2 text-[12px] font-bold" aria-label="الساعة ${h}">${h}</button>`;
+      const stateAr = s === 'light' ? 'طاعة'
+                    : s === 'dark'  ? 'معصية'
+                    : s === 'empty' ? 'غفلة'
+                    : 'غير مصنّفة';
+      return `<button onclick="cycleHour(${i})" class="hour-cell ${cls} border rounded-lg py-2 text-[12px] font-bold" aria-label="الساعة ${h} — ${stateAr}" aria-pressed="${s ? 'true' : 'false'}">${h}</button>`;
     }).join('');
   }
 }
@@ -1039,13 +1224,14 @@ function renderCustomTasks() {
 function removeCustomTask(key) {
   if (!ensureCurrentDay()) return;
   if (!isCustomTaskKey(key)) return;
-  if (!confirm('حذف هذه المهمة نهائيًا؟')) return;
-  const before = cloneAppData();
-  delete appData.mujahadah[key];
-  if (!saveOrRollback(before)) return;
-  renderCustomTasks();
-  updateDisplay();
-  showToast('🗑️ حُذفت المهمة.');
+  showConfirmModal('🗑️ حذف المهمة', 'هل تريد حذف هذه المهمة نهائيًا؟', function() {
+    const before = cloneAppData();
+    delete appData.mujahadah[key];
+    if (!saveOrRollback(before)) return;
+    renderCustomTasks();
+    updateDisplay();
+    showToast('🗑️ حُذفت المهمة.');
+  });
 }
 
 /* ═══════════════════════ استرجاع الحقول ═══════════════════════ */
@@ -1072,7 +1258,7 @@ function restoreFormState() {
   const m = appData.mujahadah || {};
   setChk('.mujahadah-check', cb => cb.checked = !!m[cb.dataset.task]);
 
-  if (appData.birthYear) setVal('birth-year', appData.birthYear);
+  setVal('birth-year', appData.birthYear ?? '');
   setVal('notif-morning', appData.notifications?.morning || '05:30');
   setVal('notif-evening', appData.notifications?.evening || '21:00');
 
@@ -1197,9 +1383,11 @@ function calculateLife(showMsg) {
   const before = cloneAppData();
   appData.birthYear = by;
   if (!saveOrRollback(before)) return;
-  const start = new Date(by, 0, 1);
   const now = new Date();
-  const days = Math.max(0, Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 86400000));
+  // احسب بين أيام تقويمية بتوقيت UTC حتى لا يسبب التوقيت الصيفي فرق يوم.
+  const start = Date.UTC(by, 0, 1);
+  const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.max(0, Math.floor((todayUTC - start) / 86400000));
   const hours = days * 24;
   const breaths = hours * 60 * 12;
   document.getElementById('days-lived').innerText    = '≈ ' + days.toLocaleString('ar-EG');
@@ -1211,6 +1399,169 @@ function calculateLife(showMsg) {
 }
 
 /* ═══════════════════════ السجل والرسم ═══════════════════════ */
+/* ═══════════════════════ التحليل الأسبوعي الذكي ═══════════════════════ */
+const ARABIC_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const PERIOD_NAMES = ['السحري (00–05)', 'الصباحي (06–11)', 'الظهري (12–17)', 'المسائي (18–23)'];
+
+function analyzeWeek() {
+  const todayDate = new Date();
+  const byDate = new Map((appData.history || []).map(item => [item.date, item]));
+
+  const days = [];
+  for (let offset = 6; offset >= 0; offset--) {
+    const d = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() - offset);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (key === currentDayKey()) {
+      days.push({
+        date: key,
+        dayOfWeek: d.getDay(),
+        lights: appData.lights,
+        darks: appData.darks,
+        empties: appData.empties,
+        hoursArray: [...appData.hours],
+        mujahadahCount: Object.values(appData.mujahadah || {}).filter(Boolean).length,
+        mujahadahTotal: MUJAHADAH_KEYS.length + Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length
+      });
+    } else {
+      const a = byDate.get(key);
+      days.push({
+        date: key,
+        dayOfWeek: d.getDay(),
+        lights: a?.lights || 0,
+        darks: a?.darks || 0,
+        empties: a?.empties || 0,
+        hoursArray: a?.hoursArray || new Array(24).fill(null),
+        mujahadahCount: a?.mujahadahCount || 0,
+        mujahadahTotal: a?.mujahadahTotal || MUJAHADAH_KEYS.length
+      });
+    }
+  }
+
+  const active = days.filter(d => (d.lights + d.darks + d.empties) > 0);
+
+  if (active.length === 0) {
+    return { status: 'empty', message: 'لا توجد بيانات كافية بعد. سجّل ساعاتك اليومية ليظهر التحليل.' };
+  }
+  if (active.length < 3) {
+    return { status: 'early', message: 'سجّلت ' + active.length + ' من 7 أيام. تابع التسجيل — التحليل يحتاج 3 أيام على الأقل.' };
+  }
+
+  /* أفضل وأسوأ يوم */
+  const dayStats = {};
+  active.forEach(d => {
+    const total = d.lights + d.darks + d.empties;
+    const pct = total > 0 ? (d.lights / total) * 100 : 0;
+    if (!dayStats[d.dayOfWeek]) dayStats[d.dayOfWeek] = [];
+    dayStats[d.dayOfWeek].push(pct);
+  });
+  const dayAvg = Object.entries(dayStats).map(([dow, pcts]) => ({
+    dow: Number(dow),
+    avg: pcts.reduce((a,b) => a+b, 0) / pcts.length
+  })).sort((a, b) => b.avg - a.avg);
+
+  const bestDay = dayAvg[0];
+  const worstDay = dayAvg.length > 1 ? dayAvg[dayAvg.length - 1] : null;
+
+  /* تحليل الفترات */
+  const pEmpty = [0,0,0,0], pLight = [0,0,0,0];
+  active.forEach(d => {
+    (d.hoursArray || []).forEach((h, i) => {
+      if (!h) return;
+      const p = Math.floor(i / 6);
+      if (h === 'empty') pEmpty[p]++;
+      if (h === 'light') pLight[p]++;
+    });
+  });
+  const maxEmpty = Math.max(...pEmpty);
+  const maxLight = Math.max(...pLight);
+  const peakEmptyIdx = maxEmpty > 0 ? pEmpty.indexOf(maxEmpty) : -1;
+  const peakLightIdx = maxLight > 0 ? pLight.indexOf(maxLight) : -1;
+
+  /* متوسط المجاهدة */
+  const mujAvg = active.reduce((s, d) => s + (d.mujahadahCount || 0), 0) / active.length;
+  const mujTotal = active[0].mujahadahTotal || MUJAHADAH_KEYS.length;
+
+  /* الاتجاه */
+  let trendText = '';
+  if (active.length >= 5) {
+    const sorted = [...active].sort((a, b) => a.date.localeCompare(b.date));
+    const half = Math.floor(sorted.length / 2);
+    const firstAvg = sorted.slice(0, half).reduce((s, d) => {
+      const t = d.lights + d.darks + d.empties;
+      return s + (t > 0 ? d.lights / t : 0);
+    }, 0) / half;
+    const secondAvg = sorted.slice(half).reduce((s, d) => {
+      const t = d.lights + d.darks + d.empties;
+      return s + (t > 0 ? d.lights / t : 0);
+    }, 0) / (sorted.length - half);
+    const diff = (secondAvg - firstAvg) * 100;
+    if (diff > 8) trendText = '📈 تحسّن: ارتفعت نسبة الطاعة بنحو ' + Math.round(diff) + ' نقطة مئوية في النصف الثاني.';
+    else if (diff < -8) trendText = '📉 تراجع: انخفضت نسبة الطاعة بنحو ' + Math.round(Math.abs(diff)) + ' نقطة مئوية في النصف الثاني.';
+    else trendText = '➡️ الأداء مستقر طوال الأسبوع.';
+  }
+
+  return {
+    status: 'ok',
+    activeCount: active.length,
+    bestDay: { name: ARABIC_DAYS[bestDay.dow], pct: Math.round(bestDay.avg) },
+    worstDay: worstDay ? { name: ARABIC_DAYS[worstDay.dow], pct: Math.round(worstDay.avg) } : null,
+    peakEmpty: peakEmptyIdx >= 0 ? PERIOD_NAMES[peakEmptyIdx] : null,
+    peakLight: peakLightIdx >= 0 ? PERIOD_NAMES[peakLightIdx] : null,
+    mujAvg: Math.round(mujAvg * 10) / 10,
+    mujTotal: mujTotal,
+    trendText: trendText
+  };
+}
+
+function renderWeeklyInsights() {
+  const c = document.getElementById('weeklyInsights');
+  if (!c) return;
+  const r = analyzeWeek();
+
+  if (r.status !== 'ok') {
+    c.innerHTML = '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center text-xs text-slate-500 leading-relaxed">' + r.message + '</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (r.bestDay) {
+    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
+          + '<span class="text-xs text-slate-600">🏆 أفضل يوم</span>'
+          + '<span class="text-xs font-bold text-emerald-700">' + r.bestDay.name + ' — ' + r.bestDay.pct + '%</span>'
+          + '</div>';
+  }
+  if (r.worstDay && r.worstDay.name !== r.bestDay.name) {
+    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
+          + '<span class="text-xs text-slate-600">⚠️ أقل يوم</span>'
+          + '<span class="text-xs font-bold text-rose-700">' + r.worstDay.name + ' — ' + r.worstDay.pct + '%</span>'
+          + '</div>';
+  }
+  if (r.peakLight) {
+    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
+          + '<span class="text-xs text-slate-600">✨ أكثر الطاعة في</span>'
+          + '<span class="text-xs font-bold text-emerald-700">' + r.peakLight + '</span>'
+          + '</div>';
+  }
+  if (r.peakEmpty) {
+    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
+          + '<span class="text-xs text-slate-600">🌫️ تتكدّس الغفلة في</span>'
+          + '<span class="text-xs font-bold text-amber-700">' + r.peakEmpty + '</span>'
+          + '</div>';
+  }
+  html += '<div class="flex justify-between items-center py-1.5">'
+        + '<span class="text-xs text-slate-600">💪 متوسط المجاهدة</span>'
+        + '<span class="text-xs font-bold text-islamic-700">' + r.mujAvg + ' / ' + r.mujTotal + '</span>'
+        + '</div>';
+
+  if (r.trendText) {
+    html += '<div class="mt-2 pt-2 border-t border-slate-200 text-[11px] text-slate-700 leading-relaxed text-center">'
+          + r.trendText + '</div>';
+  }
+
+  c.innerHTML = html;
+}
+
 function renderHistoryAndChart() {
   const c = document.getElementById('history-container');
   const chart = document.getElementById('analytics-chart');
@@ -1225,17 +1576,20 @@ function renderHistoryAndChart() {
     const archivedItem = byDate.get(key);
     items.push(key === currentDayKey()
       ? { date:key, lights:appData.lights, darks:appData.darks, empties:appData.empties, isToday:true }
-      : (archivedItem || { date:key, lights:0, darks:0, empties:0 }));
+      : (archivedItem
+          ? { ...archivedItem, hasRecord:true }
+          : { date:key, lights:0, darks:0, empties:0, hasRecord:false }));
   }
 
-  if (chart) {
+renderWeeklyInsights();
+if (chart) {
     const totals = items.map(x => (x.lights||0) + (x.darks||0) + (x.empties||0));
     const maxT = Math.max(1, ...totals);
     chart.innerHTML = items.map(item => {
       const total = (item.lights||0) + (item.darks||0) + (item.empties||0);
       const h = total === 0 ? 3 : Math.max(8, Math.round((total / maxT) * 100));
       const ring = item.isToday ? 'ring-2 ring-islamic-gold' : '';
-      const bg = item.isToday ? 'bg-islamic-gold' : 'bg-emerald-500';
+      const bg = item.isToday ? 'bg-islamic-gold' : item.hasRecord ? 'bg-emerald-500' : 'bg-slate-200';
       // ✅ إصلاح تجميلي (ب) : تسمية رقمية لاتينية بدل الهجرية المقتطعة
       const label = item.isToday ? 'اليوم' : formatNumericShortDate(item.date);
       return `<div class="flex-1 flex flex-col items-center gap-1 h-full justify-end group relative">
@@ -1297,7 +1651,7 @@ async function showAppNotification(title, body, tag) {
       const { LocalNotifications } = Capacitor.Plugins;
       await LocalNotifications.schedule({
         notifications: [{
-          id: Math.floor(Date.now() / 1000) % 2147483647,
+          id: (Math.floor(Date.now() / 1000) % 2000000000) + 10000,
           title: title,
           body: body,
           schedule: { at: new Date(Date.now() + 200) },
@@ -1344,7 +1698,14 @@ async function saveNotificationSettings() {
       lastFired: appData.notifications?.lastFired || {}
     };
     if (!saveOrRollback(before)) return;
-    await scheduleDailyNotifications();
+    const scheduled = await scheduleDailyNotifications();
+    if (!scheduled) {
+      appData.notifications.enabled = false;
+      save();
+      if (st) st.innerText = '⚠️ تعذّرت جدولة الإشعارات الأصلية؛ تحقق من الإذن وإعدادات التطبيق.';
+      showToast('⚠️ لم تتأكد جدولة التذكيرات على هذا الجهاز.');
+      return;
+    }
     if (st) st.innerText = `✅ مفعّل (صباح ${m}، مساء ${e})`;
     showToast('🔔 تم التفعيل.');
     return;
@@ -1369,7 +1730,7 @@ async function saveNotificationSettings() {
     const before = cloneAppData();
     appData.notifications = { ...(appData.notifications || {}), morning: m, evening: e, enabled: false };
     if (!saveOrRollback(before)) return;
-    if (st) st.innerText = '⚠️ الإذن مرفوض — التذكير داخل التطبيق فقط.';
+    if (st) st.innerText = '⚠️ الإذن مرفوض؛ لن تصلك إشعارات حتى تسمح بها من إعدادات المتصفح.';
     return;
   }
   const before = cloneAppData();
@@ -1380,23 +1741,21 @@ async function saveNotificationSettings() {
   showToast('🔔 تم التفعيل.');
 }
 async function scheduleDailyNotifications() {
-  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return false;
   const n = appData.notifications;
-  if (!n || !n.enabled) return;
+  if (!n || !n.enabled) return false;
 
   try {
     const { LocalNotifications } = Capacitor.Plugins;
     const perm = await LocalNotifications.requestPermissions();
-    if (perm.display !== 'granted') return;
+    if (perm.display !== 'granted') return false;
 
-    /* ✅ إلغاء كل الإشعارات المعلّقة — ليس فقط 1001 و1002 */
+    // ألغِ إشعارات هذا التطبيق فقط؛ لا تمسح إشعارات أخرى مجدولة من وحدات أخرى.
     try {
       const pending = await LocalNotifications.getPending();
-      if (pending && pending.notifications && pending.notifications.length > 0) {
-        const toCancel = pending.notifications.map(n => ({ id: n.id }));
-        await LocalNotifications.cancel({ notifications: toCancel });
-      }
-    } catch (_) { /* تجاهل */ }
+      const ours = (pending?.notifications || []).filter(item => [1001, 1002].includes(item.id));
+      if (ours.length) await LocalNotifications.cancel({ notifications: ours.map(item => ({ id: item.id })) });
+    } catch (_) { /* يمكن متابعة الجدولة حتى إن تعذّر فحص المعلّق */ }
 
     const [mH, mM] = n.morning.split(':').map(Number);
     const [eH, eM] = n.evening.split(':').map(Number);
@@ -1420,8 +1779,10 @@ async function scheduleDailyNotifications() {
       ]
     });
     console.log('✅ تمت جدولة الإشعارات اليومية.');
+    return true;
   } catch (err) {
     console.warn('تعذّرت جدولة الإشعارات:', err);
+    return false;
   }
 }
 
@@ -1462,33 +1823,148 @@ function exportData() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast("📤 تم التصدير.");
 }
-function importData(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) return showToast("⚠️ الملف كبير جدًا.");
-  if (!confirm('سيستبدل الاستيراد كل بياناتك الحالية. هل أنت متأكد؟')) {
-    event.target.value = ''; return;
-  }
-  const fr = new FileReader();
-  fr.onload = () => {
-    try {
-      const raw = JSON.parse(String(fr.result || ''));
-      const imported = validateImport(raw);
-      const previous = appData;
-      appData = imported;
-      if (!save()) { appData = previous; return; }
-      updateDisplay(); restoreFormState();
-      if (appData.birthYear) calculateLife(false);
-      showToast('📥 تم الاستيراد بنجاح.');
-    } catch (err) {
-      console.error('فشل استيراد البيانات:', err);
-      showToast('⚠️ الملف غير صالح أو لا يخص التطبيق؛ لم تُغيّر بياناتك.');
-    } finally {
-      event.target.value = '';
-    }
+
+/* ═══════════════════════ تصدير CSV ═══════════════════════ */
+function csvEscape(v) {
+  if (v === null || v === undefined) return '';
+  let value = String(v);
+  // لا تسمح لخلايا نصية أن تُفسَّر كصيغة عند فتح CSV في Excel/Sheets.
+  if (/^[\s\u0000-\u001F]*[=+@\-]/.test(value)) value = "'" + value;
+  return '"' + value.replace(/"/g, '""') + '"';
+}
+
+function buildCSVRow(cells) {
+  return cells.map(csvEscape).join(',');
+}
+
+function exportCSV() {
+  /* اليوم الحالي */
+  const todayItem = {
+    date: currentDayKey(),
+    lights: appData.lights,
+    darks: appData.darks,
+    empties: appData.empties,
+    mujahadahCount: Object.values(appData.mujahadah || {}).filter(Boolean).length,
+    mujahadahTotal: MUJAHADAH_KEYS.length + Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length,
+    mujahadah: appData.mujahadah || {},
+    musharatah: appData.musharatah || {},
+    muhasabah: appData.muhasabah || {},
+    muatabah: appData.muatabah || {}
   };
-  fr.onerror = () => { showToast('⚠️ تعذّرت قراءة الملف.'); event.target.value = ''; };
-  fr.readAsText(file, 'UTF-8');
+
+  /* كل السجل + اليوم */
+  const allDays = [todayItem, ...(appData.history || [])];
+
+  /* حذف الأيام الفارغة تمامًا */
+  const meaningful = allDays.filter(d =>
+    (d.lights || 0) + (d.darks || 0) + (d.empties || 0) > 0 ||
+    !!d.mujahadahCount || Object.values(d.mujahadah || {}).some(Boolean) ||
+    !!d.musharatah?.intention || !!d.musharatah?.limbs?.length ||
+    !!d.muhasabah?.why || !!d.muhasabah?.how || !!d.muhasabah?.whom ||
+    !!d.muatabah?.note || !!d.muatabah?.correctionAction
+  );
+
+  if (!meaningful.length) {
+    return showToast('⚠️ لا توجد بيانات لتصديرها بعد.');
+  }
+
+  /* العنوان */
+  const header = [
+    'التاريخ (ميلادي)',
+    'التاريخ (هجري)',
+    'طاعة',
+    'معصية',
+    'غفلة',
+    'إجمالي مُصنّف',
+    'نسبة الطاعة %',
+    'المجاهدة',
+    'نية اليوم',
+    'الأعضاء المعاهدة',
+    'ديوان لِمَ',
+    'ديوان كيف',
+    'ديوان لِمَنْ',
+    'المعاتبة',
+    'المعاقبة'
+  ];
+
+  /* الصفوف */
+  const rows = meaningful.map(d => {
+    const total = (d.lights || 0) + (d.darks || 0) + (d.empties || 0);
+    const pct = total > 0 ? Math.round((d.lights / total) * 100) : 0;
+    const mujText = (d.mujahadahCount || 0) + '/' + (d.mujahadahTotal || MUJAHADAH_KEYS.length);
+    return [
+      d.date,
+      formatArabicDate(d.date),
+      d.lights || 0,
+      d.darks || 0,
+      d.empties || 0,
+      total,
+      pct,
+      mujText,
+      d.musharatah?.intention || '',
+      (d.musharatah?.limbs || []).join('، '),
+      d.muhasabah?.why || '',
+      d.muhasabah?.how || '',
+      d.muhasabah?.whom || '',
+      d.muatabah?.note || '',
+      d.muatabah?.correctionAction || ''
+    ];
+  });
+
+  /* BOM لضمان قراءة Excel للنص العربي */
+  const csv = '\ufeff' + [header, ...rows].map(buildCSVRow).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `muhasabah_${currentDayKey()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  showToast('📊 تم تصدير ' + meaningful.length + ' يومًا إلى CSV.');
+}
+function importData(event) {
+  const input = event.target;
+  const file = input.files?.[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    input.value = '';
+    return showToast("⚠️ الملف كبير جدًا.");
+  }
+
+  showConfirmModal(
+    '📥 استيراد نسخة احتياطية',
+    'سيستبدل الاستيراد <b>كل بياناتك الحالية</b>.<br>هل أنت متأكد؟',
+    function() {
+      const fr = new FileReader();
+      fr.onload = () => {
+        try {
+          const raw = JSON.parse(String(fr.result || ''));
+          const imported = validateImport(raw);
+          const previous = appData;
+          appData = imported;
+          if (!save()) { appData = previous; input.value = ''; return; }
+          updateDisplay(); restoreFormState();
+          if (appData.birthYear) calculateLife(false);
+          showToast('📥 تم الاستيراد بنجاح.');
+        } catch (err) {
+          console.error('فشل استيراد البيانات:', err);
+          showToast('⚠️ الملف غير صالح أو لا يخص التطبيق؛ لم تُغيّر بياناتك.');
+        } finally {
+          input.value = '';
+        }
+      };
+      fr.onerror = () => { showToast('⚠️ تعذّرت قراءة الملف.'); input.value = ''; };
+      fr.readAsText(file, 'UTF-8');
+    },
+    function() {
+      /* إلغاء → امسح الحقل */
+      input.value = '';
+    }
+  );
 }
 
 /* ═══════════════════════ Toast ═══════════════════════ */
@@ -1504,6 +1980,152 @@ function showToast(msg) {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
+
+/* ═══════════════════════ Modal موحّد ═══════════════════════ */
+let _modalKeyHandler = null;
+let _modalCancelCallback = null;
+
+function closeModal() {
+  const overlay = document.getElementById('customModalOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  if (_modalKeyHandler) {
+    document.removeEventListener('keydown', _modalKeyHandler);
+    _modalKeyHandler = null;
+  }
+  _modalCancelCallback = null;
+}
+
+/* sanitizeModalHtml: يسمح بوسوم آمنة فقط، ويهرّب كل ما عداها */
+function sanitizeModalHtml(html) {
+  const safe = /^<\/?(br|b|i|small|hr|p|span|strong|em)\s*\/?>$/i;
+  return String(html).replace(/<[^>]+>/g, function(tag) {
+    return safe.test(tag) ? tag : '&lt;' + tag.slice(1, -1) + '&gt;';
+  });
+}
+
+function showAlertModal(title, htmlText) {
+  const overlay = document.getElementById('customModalOverlay');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML =
+    '<p>' + sanitizeModalHtml(htmlText) + '</p>';
+  document.getElementById('modalFooter').innerHTML =
+    '<button class="modal-btn-primary" id="modalOkBtn">حسنًا</button>';
+  document.getElementById('modalOkBtn').onclick = closeModal;
+  overlay.classList.remove('hidden');
+
+  if (_modalKeyHandler) document.removeEventListener('keydown', _modalKeyHandler);
+  _modalKeyHandler = function(e) {
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      e.preventDefault();
+      closeModal();
+    }
+  };
+  document.addEventListener('keydown', _modalKeyHandler);
+
+  setTimeout(() => {
+    const b = document.getElementById('modalOkBtn');
+    if (b) b.focus();
+  }, 100);
+}
+
+function showConfirmModal(title, htmlText, onConfirm, onCancel) {
+  const overlay = document.getElementById('customModalOverlay');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML =
+    '<p>' + sanitizeModalHtml(htmlText) + '</p>';
+  document.getElementById('modalFooter').innerHTML =
+    '<button class="modal-btn-ghost" id="modalCancelBtn">إلغاء</button>' +
+    '<button class="modal-btn-danger" id="modalConfirmBtn">تأكيد</button>';
+
+  _modalCancelCallback = onCancel || null;
+
+  document.getElementById('modalCancelBtn').onclick = function() {
+    const cb = _modalCancelCallback;
+    closeModal();
+    if (cb) cb();
+  };
+  document.getElementById('modalConfirmBtn').onclick = function() {
+    closeModal();
+    if (onConfirm) onConfirm();
+  };
+
+  overlay.classList.remove('hidden');
+
+  if (_modalKeyHandler) document.removeEventListener('keydown', _modalKeyHandler);
+  _modalKeyHandler = function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.getElementById('modalCancelBtn').click();
+    }
+  };
+  document.addEventListener('keydown', _modalKeyHandler);
+
+  setTimeout(() => {
+    const b = document.getElementById('modalConfirmBtn');
+    if (b) b.focus();
+  }, 100);
+}
+
+function showPromptModal(title, htmlText, defaultValue, placeholder, onSubmit, onCancel) {
+  const overlay = document.getElementById('customModalOverlay');
+  document.getElementById('modalTitle').textContent = title;
+
+  const bodyEl = document.getElementById('modalBody');
+  bodyEl.innerHTML = '';
+  const p = document.createElement('p');
+  p.innerHTML = sanitizeModalHtml(htmlText);
+  bodyEl.appendChild(p);
+
+  const inputEl = document.createElement('input');
+  inputEl.type = 'text';
+  inputEl.id = 'modalPromptInput';
+  inputEl.value = (defaultValue !== null && defaultValue !== undefined) ? String(defaultValue) : '';
+  if (placeholder) inputEl.placeholder = placeholder;
+  bodyEl.appendChild(inputEl);
+
+  const footerEl = document.getElementById('modalFooter');
+  footerEl.innerHTML = '';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'modal-btn-ghost';
+  cancelBtn.textContent = 'إلغاء';
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'modal-btn-primary';
+  submitBtn.textContent = 'تأكيد';
+  footerEl.appendChild(cancelBtn);
+  footerEl.appendChild(submitBtn);
+
+  setTimeout(() => { inputEl.focus(); inputEl.select(); }, 100);
+
+  _modalCancelCallback = onCancel || null;
+  cancelBtn.onclick = function() {
+    const cb = _modalCancelCallback;
+    closeModal();
+    if (cb) cb();
+  };
+  submitBtn.onclick = function() {
+    const val = inputEl.value;
+    closeModal();
+    if (onSubmit) onSubmit(val);
+  };
+
+  overlay.classList.remove('hidden');
+
+  if (_modalKeyHandler) document.removeEventListener('keydown', _modalKeyHandler);
+  _modalKeyHandler = function(e) {
+    if (e.key === 'Escape') { e.preventDefault(); cancelBtn.click(); }
+    else if (e.key === 'Enter') { e.preventDefault(); submitBtn.click(); }
+  };
+  document.addEventListener('keydown', _modalKeyHandler);
+}
+
+/* النقر على الخلفية يُغلق النافذة */
+document.getElementById('customModalOverlay').addEventListener('mousedown', function(e) {
+  if (e.target !== this) return;
+  if (this.classList.contains('hidden')) return;
+  const cancelBtn = document.getElementById('modalCancelBtn');
+  if (cancelBtn) cancelBtn.click();
+  else closeModal();
+});
 
 function exportRecoveryBackup() {
   let raw = null;
@@ -1571,10 +2193,27 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+/* ✅ حماية الحقول غير المحفوظة قبل الخروج */
+function hasUnsavedChanges() {
+  const drafts = collectUnsavedControls();
+  return Object.keys(drafts).some(key => {
+    if (key === 'text') return Object.keys(drafts.text || {}).length > 0;
+    return true;
+  });
+}
+
+window.addEventListener('beforeunload', function(e) {
+  if (!hasUnsavedChanges()) return;
+  e.preventDefault();
+  e.returnValue = '';
+  return '';
+});
+
 window.addEventListener('load', () => {
   rolloverIfNeeded();
   restoreFormState();
   updateDisplay();
+  checkStorageQuota();
   rotateQuote();
   renderLibrary();
   if (appData.birthYear) calculateLife(false);
