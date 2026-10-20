@@ -1,19 +1,19 @@
 {
-  "name": "محاسبة النفس",
-  "short_name": "محاسبة النفس",
-  "description": "تطبيق يومي لمشارطة النفس ومراقبتها ومحاسبتها ومجاهَدتها.",
-  "lang": "ar",
-  "dir": "rtl",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
-  "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#0d261e",
-  "icons": [
-    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+  "name": "muhasabah",
+  "version": "1.0.0",
+  "private": true,
+  "description": "تطبيق محاسبة النفس — Capacitor build",
+  "scripts": {
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/local-notifications": "^6.1.0",
+    "@capacitor/app": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
 }
