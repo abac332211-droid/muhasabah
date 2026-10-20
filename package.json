@@ -1,17 +1,21 @@
 {
   "name": "muhasabah",
-  "version": "1.0.0",
+  "version": "7.3.0",
+  "description": "محاسبة النفس — على منهج الإمام الغزالي",
   "private": true,
-  "description": "تطبيق محاسبة النفس — Capacitor build",
+  "author": "abac332211-droid",
+  "license": "MIT",
   "scripts": {
-    "cap:sync": "npx cap sync android",
-    "cap:open": "npx cap open android"
+    "sync": "cap sync android",
+    "open:android": "cap open android",
+    "build:android": "cd android && ./gradlew assembleDebug",
+    "build:android:release": "cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
-    "@capacitor/core": "^6.2.0",
     "@capacitor/android": "^6.2.0",
-    "@capacitor/local-notifications": "^6.1.0",
-    "@capacitor/app": "^6.0.2"
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/local-notifications": "^6.1.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0"
