@@ -13,113 +13,261 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" href="./icon-192.png">
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="./tailwind.css">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-<script>
-tailwind.config = {
-  theme: { extend: {
-    colors: { islamic: {
-      50:'#f4f7f4',100:'#e2eae2',200:'#c3d5c3',
-      600:'#1b4d3e',700:'#14382d',800:'#0d261e',900:'#08150f',
-      gold:'#d4af37',lightGold:'#f9f3d9'
-    }},
-    fontFamily: { cairo:['Cairo','sans-serif'], amiri:['Amiri','serif'] }
-  }}
-}
-</script>
 <style>
+  /* صمام أمان: يمنع تكدس التبويبات حتى لو تعطل CSS الخارجي */
+  .hidden { display: none !important; }
   body { font-family:'Cairo',sans-serif; background:#f8fafc; -webkit-tap-highlight-color:transparent; }
   .amiri-font { font-family:'Amiri',serif; }
   .tab-scroll { scrollbar-width:none; }
   .tab-scroll::-webkit-scrollbar { display:none; }
   .fade-in { animation: fadeIn .25s ease-out; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
-    .chart-bar { transition: height .4s ease; }
+  .chart-bar { transition: height .4s ease; }
   .hour-cell { transition: background .15s, color .15s; }
-  /* ✅ إبراز التركيز للوصولية (لوحة المفاتيح + قارئ الشاشة) */
-  *:focus-visible {
-    outline: 2px solid #d4af37;
-    outline-offset: 2px;
-    border-radius: 4px;
+  body.privacy-shield .tab-content,
+  body.privacy-shield #daily-quote,
+  body.privacy-shield #streak-count,
+  body.privacy-shield #longest-streak,
+  body.privacy-shield #date-badge { filter: blur(7px); transition: filter .2s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    body.privacy-shield .tab-content,
+    body.privacy-shield #daily-quote,
+    body.privacy-shield #streak-count,
+    body.privacy-shield #longest-streak,
+    body.privacy-shield #date-badge { transition: none; }
+    .fade-in, .chart-bar, .hour-cell { animation: none !important; transition: none !important; }
   }
-    button:focus-visible {
-    outline-offset: 3px;
+</style>
+<style>
+  /* ═══ h5-ui-refresh — لمسات بصرية ═══ */
+  body { background-color: #f8f4ea !important; }
+  header.bg-islamic-800 { background-color: #061a14 !important; }
+  #brand-logo {
+    background: linear-gradient(135deg, #f4d47a 0%, #b8941f 100%);
+    color: #061a14;
+    font-family: 'Amiri', serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(184,148,31,.35), inset 0 1px 2px rgba(255,255,255,.4);
   }
+  .tab-btn em { font-style: normal; margin-inline-end: .35rem; display: inline-block; }
+</style>
+<style>
+  /* h6.1-darkmode v3 — وضع ليلي (Option B) */
+  body.dark { background-color: #0f172a !important; color: #e2e8f0; }
+  body.dark .bg-white { background-color: #1e293b !important; }
+  body.dark .bg-slate-50 { background-color: #0f172a !important; }
+  body.dark .bg-slate-100 { background-color: #1e293b !important; }
+  body.dark .bg-slate-200 { background-color: #334155 !important; }
+  body.dark .text-slate-800 { color: #e2e8f0 !important; }
+  body.dark .text-slate-700 { color: #cbd5e1 !important; }
+  body.dark .text-slate-600, body.dark .text-slate-500 { color: #94a3b8 !important; }
+  body.dark .text-slate-400 { color: #64748b !important; }
+  body.dark .border-slate-200 { border-color: #334155 !important; }
+  body.dark .border-slate-300 { border-color: #475569 !important; }
+  body.dark input, body.dark textarea { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+  body.dark input::placeholder, body.dark textarea::placeholder { color: #64748b !important; }
+  body.dark .bg-islamic-50 { background-color: #0d261e !important; }
+  body.dark .bg-islamic-lightGold { background-color: #3d2f00 !important; }
+  body.dark .bg-emerald-50, body.dark .bg-emerald-100 { background-color: #0d261e !important; }
+  body.dark .bg-amber-50, body.dark .bg-amber-100 { background-color: #2c1f05 !important; }
+  body.dark .bg-rose-50, body.dark .bg-rose-100 { background-color: #2c0510 !important; }
+  body.dark .border-emerald-100, body.dark .border-emerald-200 { border-color: #14382d !important; }
+  body.dark .border-amber-200 { border-color: #3d2c0d !important; }
+  body.dark .border-rose-100, body.dark .border-rose-200 { border-color: #3d0d1a !important; }
+  body.dark .text-emerald-700 { color: #6ee7b7 !important; }
+  body.dark .text-emerald-800, body.dark .text-emerald-900 { color: #a7f3d0 !important; }
+  body.dark .text-amber-700, body.dark .text-amber-800, body.dark .text-amber-900 { color: #fde68a !important; }
+  body.dark .text-rose-700, body.dark .text-rose-900 { color: #fca5a5 !important; }
+  body.dark .text-islamic-700 { color: #6ee7b7 !important; }
+  body.dark .text-islamic-800 { color: #d4af37 !important; }
+  body.dark .text-islamic-900 { color: #061a14 !important; }
+</style>
+<style>
+/* h7-الخلوة — باليت السراج الدافئ */
+body.dark {
+  background-color: #090C0A !important;
+  color: #F8EFE2 !important;
+}
+body.dark .bg-white { background-color: #141915 !important; }
+body.dark .bg-slate-50,
+body.dark .bg-slate-100 { background-color: #090C0A !important; }
+body.dark .bg-slate-200 { background-color: #1e231a !important; }
+body.dark .text-slate-800 { color: #F8EFE2 !important; }
+body.dark .text-slate-700 { color: #e8dcc0 !important; }
+body.dark .text-slate-600,
+body.dark .text-slate-500 { color: #DACBA5 !important; }
+body.dark .text-slate-400 { color: #8a7a5a !important; }
+body.dark .border-slate-200 { border-color: #2a2a20 !important; }
+body.dark .border-slate-300 { border-color: #3a3a2e !important; }
+body.dark input,
+body.dark textarea { background-color: #090C0A !important; color: #F8EFE2 !important; border-color: #3a3a2e !important; }
+body.dark input::placeholder,
+body.dark textarea::placeholder { color: #6a6048 !important; }
+body.dark .bg-emerald-50,
+body.dark .bg-emerald-100 { background-color: #0d261e !important; }
+body.dark .bg-amber-50,
+body.dark .bg-amber-100 { background-color: #2c1f05 !important; }
+body.dark .bg-rose-50,
+body.dark .bg-rose-100 { background-color: #2c0510 !important; }
+body.dark .text-emerald-700 { color: #6ee7b7 !important; }
+body.dark .text-emerald-800,
+body.dark .text-emerald-900 { color: #a7f3d0 !important; }
+body.dark .text-amber-700,
+body.dark .text-amber-800,
+body.dark .text-amber-900 { color: #fde68a !important; }
+body.dark .text-rose-700,
+body.dark .text-rose-900 { color: #fca5a5 !important; }
+body.dark .text-islamic-700 { color: #6ee7b7 !important; }
+body.dark .text-islamic-800 { color: #d4af37 !important; }
+</style>
+<style>
+/* h7-الطباعة */
+#print-report { display: none; }
+@media print {
+  html { background: #fff !important; }
+  body, body.dark { background: #fff !important; color: #000 !important; }
+  body > *:not(#print-report) { display: none !important; }
+  #print-report { display: block !important; background: #fff !important; color: #000 !important; }
+  @page { size: A4; margin: 15mm; }
+}
+</style>
+<style id="h7-khalwa-deep">
+/* ═══ h7-09 — خلوة: سراج حقيقي، ليس وضعًا ليليًا ═══ */
 
-  /* ✅ Modal موحّد */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(13,38,30,0.65);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000; padding: 16px;
-    animation: fadeIn .2s ease-out;
-  }
-  .modal-card {
-    background: #ffffff; border-radius: 20px;
-    padding: 22px; width: 100%; max-width: 440px;
-    max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25),
-                0 8px 10px -6px rgba(0,0,0,0.15);
-    border: 1px solid #e2e8f0;
-  }
-  .modal-header {
-    font-size: 17px; font-weight: 700; margin-bottom: 12px;
-    color: #0d261e;
-    display: flex; align-items: center; gap: 8px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #d4af37;
-  }
-  .modal-body {
-    font-size: 14px; color: #334155; line-height: 1.7;
-    margin-bottom: 18px;
-  }
-  .modal-body p { margin: 0 0 10px; }
-  .modal-body p:last-child { margin-bottom: 0; }
-  .modal-body b, .modal-body strong { color: #0d261e; }
-  .modal-body input {
-    width: 100%; padding: 12px; margin-top: 8px;
-    border: 1px solid #cbd5e1; border-radius: 10px;
-    font-size: 15px; background: #fff; color: #1e293b;
-    font-family: inherit; box-sizing: border-box;
-  }
-  .modal-body input:focus {
-    outline: none; border-color: #1b4d3e;
-    box-shadow: 0 0 0 3px rgba(27,77,62,0.15);
-  }
-  .modal-footer {
-    display: flex; gap: 8px; justify-content: flex-end;
-    padding-top: 14px;
-    border-top: 1px solid #e2e8f0;
-  }
-  .modal-footer button {
-    flex: 1; min-width: 80px;
-    padding: 11px 14px; border-radius: 10px;
-    font-size: 14px; font-weight: 600;
-    border: 0; cursor: pointer; font-family: inherit;
-    transition: background .15s, transform .1s;
-  }
-  .modal-footer button:active { transform: scale(0.98); }
-  .modal-btn-primary { background: #1b4d3e; color: #fff; }
-  .modal-btn-primary:hover { background: #14382d; }
-  .modal-btn-ghost { background: #f1f5f9; color: #334155; }
-  .modal-btn-ghost:hover { background: #e2e8f0; }
-  .modal-btn-danger { background: #b91c1c; color: #fff; }
-  .modal-btn-danger:hover { background: #991b1b; }
+/* الجسد: فحم دافئ بتدرّج شعاعي كضوء السراج */
+body.dark {
+  background-color: #0d0f0c !important;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(244, 212, 122, 0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(212, 175, 55, 0.04) 0%, transparent 55%) !important;
+  color: #EDE4D0 !important;
+}
+
+/* البطاقات: زيتوني دافئ، لا أزرق */
+body.dark .bg-white { background-color: #16180f !important; border-color: #2a2a20 !important; }
+body.dark .bg-slate-50,
+body.dark .bg-slate-100 { background-color: #0d0f0c !important; }
+body.dark .bg-slate-200 { background-color: #1e2118 !important; }
+
+/* النصوص: ورق قديم، لا أزرق */
+body.dark .text-slate-800 { color: #F8EFE2 !important; }
+body.dark .text-slate-700 { color: #E5D9BC !important; }
+body.dark .text-slate-600,
+body.dark .text-slate-500 { color: #C9B98F !important; }
+body.dark .text-slate-400 { color: #8a7a5a !important; }
+
+/* الحدود: بني دافئ، لا أزرق */
+body.dark .border-slate-200 { border-color: #2a2618 !important; }
+body.dark .border-slate-300 { border-color: #3d3626 !important; }
+
+/* الحقول */
+body.dark input,
+body.dark textarea {
+  background-color: #0a0c08 !important;
+  color: #F8EFE2 !important;
+  border-color: #3d3626 !important;
+}
+body.dark input::placeholder,
+body.dark textarea::placeholder { color: #6a5f45 !important; }
+
+/* الفئات الإسلامية — تُصبح نارية دافئة */
+body.dark .bg-islamic-50 { background-color: #1a1c12 !important; border-color: #2a2618 !important; }
+body.dark .bg-islamic-lightGold { background-color: #2c1f05 !important; color: #fde68a !important; }
+body.dark .text-islamic-700 { color: #d4af37 !important; }
+body.dark .text-islamic-800 { color: #f4d47a !important; }
+body.dark .text-islamic-900 { color: #1a1c12 !important; }
+
+/* الأخضر — يبقى دافئًا */
+body.dark .bg-emerald-50,
+body.dark .bg-emerald-100 { background-color: #1a2016 !important; }
+body.dark .text-emerald-700 { color: #86efac !important; }
+body.dark .text-emerald-800,
+body.dark .text-emerald-900 { color: #bbf7d0 !important; }
+body.dark .border-emerald-100,
+body.dark .border-emerald-200 { border-color: #2a3520 !important; }
+
+/* الكهرماني — يبقى ذهبيًا */
+body.dark .bg-amber-50,
+body.dark .bg-amber-100 { background-color: #2c1f05 !important; }
+body.dark .text-amber-700,
+body.dark .text-amber-800,
+body.dark .text-amber-900 { color: #fde68a !important; }
+body.dark .border-amber-200 { border-color: #4a3810 !important; }
+
+/* الوردي — يبقى دافئًا */
+body.dark .bg-rose-50,
+body.dark .bg-rose-100 { background-color: #2c1010 !important; }
+body.dark .text-rose-700 { color: #fda4af !important; }
+body.dark .text-rose-900 { color: #fecaca !important; }
+body.dark .border-rose-100,
+body.dark .border-rose-200 { border-color: #4a1a1a !important; }
+
+/* الهيدر: أعمق، مع شريط ذهبي دافئ */
+body.dark header.bg-islamic-800 {
+  background-color: #0a0c08 !important;
+  border-bottom-color: #d4af37 !important;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.15) !important;
+}
+
+/* البطاقات: توهج ذهبي خفيف (سراج) */
+body.dark .bg-white,
+body.dark .bg-islamic-50,
+body.dark .bg-amber-50,
+body.dark .bg-emerald-50,
+body.dark .bg-rose-50 {
+  box-shadow: 0 1px 8px rgba(212, 175, 55, 0.08), inset 0 1px 0 rgba(244, 212, 122, 0.05) !important;
+}
+
+/* شارة "خلوة" — تظهر فقط في الوضع الليلي، في الهيدر */
+body.dark #date-badge::after {
+  content: ' 🕯️';
+  margin-right: 4px;
+}
+
+/* زر التبديل: أيقونة دافئة */
+body.dark #dark-toggle-btn {
+  background-color: #2c1f05 !important;
+  color: #f4d47a !important;
+  border-color: #d4af37 !important;
+}
+
+/* شريط التبويبات: حواف دافئة */
+body.dark .tab-btn.bg-islamic-600 {
+  background-color: #d4af37 !important;
+  color: #0a0c08 !important;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3) !important;
+}
+
+/* شريط التقدم / الإحصاءات */
+body.dark .bg-islamic-600:not(.tab-btn) {
+  background-color: #d4af37 !important;
+}
 </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+<script>try{if(localStorage.getItem('ihya_privacy')==='1')document.body.classList.add('privacy-shield');if(localStorage.getItem('ihya_dark')==='1')document.body.classList.add('dark');}catch(_){}</script>
 
 <header class="bg-islamic-800 text-white shadow-lg sticky top-0 z-50 border-b-4 border-islamic-gold">
   <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-    <div>
-      <h1 class="text-lg font-bold font-amiri text-islamic-gold">محاسبة النفس</h1>
-      <p class="text-[11px] text-emerald-200">منهج الإمام الغزالي في المراقبة والمحاسبة</p>
+    <div class="flex items-center gap-2.5">
+      <div id="brand-logo" class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 select-none" aria-hidden="true">غ</div>
+      <div>
+        <h1 class="text-lg font-bold font-amiri text-islamic-gold leading-tight">محاسبة النفس</h1>
+        <p class="text-[11px] text-emerald-200 leading-tight">منهج الإمام الغزالي في المراقبة والمحاسبة</p>
+      </div>
     </div>
     <div class="flex items-center gap-2">
-      <div class="bg-islamic-700 px-2.5 py-1 rounded-full text-xs text-islamic-gold border border-islamic-gold/30 flex items-center gap-1 font-bold">
+      <div class="bg-islamic-700 px-2.5 py-1 rounded-full text-xs text-islamic-gold border border-islamic-gold/30 flex items-center gap-1 font-bold" title="أيام النشاط المسجّل — الحالي / الأطول">
         🔥 <span id="streak-count">0</span>
+        <span class="text-emerald-200 text-[10px]">/ <span id="longest-streak">0</span></span>
       </div>
       <div id="date-badge" class="bg-islamic-700 px-2.5 py-1 rounded-full text-[10px] text-emerald-100 border border-islamic-gold/20 hidden sm:block">اليوم</div>
+      <button id="privacy-toggle-btn" type="button" title="تفعيل وضع الخصوصية" aria-label="تبديل وضع الخصوصية" aria-pressed="false" class="bg-islamic-700 hover:bg-islamic-600 w-8 h-8 rounded-full text-islamic-gold border border-islamic-gold/30 flex items-center justify-center text-sm transition-colors">👁️</button>
+      <button id="dark-toggle-btn" type="button" title="تفعيل الخلوة" aria-label="تبديل الخلوة" aria-pressed="false" class="bg-islamic-700 hover:bg-islamic-600 w-8 h-8 rounded-full text-islamic-gold border border-islamic-gold/30 flex items-center justify-center text-sm transition-colors">🕯️</button>
     </div>
   </div>
 </header>
@@ -127,7 +275,7 @@ tailwind.config = {
 <main class="max-w-md mx-auto px-4 mt-4 space-y-4">
 
 <section class="bg-gradient-to-br from-islamic-600 to-islamic-800 text-white rounded-2xl p-4 shadow-md relative overflow-hidden">
-  <div class="absolute -left-4 -bottom-4 text-islamic-700 opacity-20 font-amiri text-8xl pointer-events-none">محاسبة</div>
+  <div class="absolute -left-3 -bottom-6 text-islamic-gold opacity-15 font-amiri text-9xl pointer-events-none select-none" aria-hidden="true">٩٩</div>
   <div class="flex justify-between items-start mb-1">
     <h3 class="text-islamic-gold font-bold text-xs">وقفة اليوم:</h3>
     <button onclick="rotateQuote(true)" class="text-xs text-emerald-100 bg-islamic-700/70 active:bg-islamic-gold active:text-islamic-900 px-3 py-2 rounded-full border border-islamic-gold/40 transition-colors">↻ اقتباس آخر</button>
@@ -136,18 +284,18 @@ tailwind.config = {
 </section>
 
 <div class="grid grid-cols-4 gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 text-[11px] font-semibold text-center">
-  <button onclick="switchTab('musharatah')" id="btn-musharatah" class="py-2.5 rounded-lg transition-all text-center bg-islamic-600 text-white shadow-sm font-bold">1.المشارطة</button>
-  <button onclick="switchTab('muraqabah')"  id="btn-muraqabah"  class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">2.المراقبة</button>
-  <button onclick="switchTab('muhasabah')"  id="btn-muhasabah"  class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">3.المحاسبة</button>
-  <button onclick="switchTab('muaqabah')"   id="btn-muaqabah"   class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">4.المعاقبة</button>
+  <button onclick="switchTab('musharatah')" id="btn-musharatah" class="tab-btn py-2.5 rounded-lg transition-all text-center bg-islamic-600 text-white shadow-sm font-bold"><em>🤝</em>المشارطة</button>
+  <button onclick="switchTab('muraqabah')"  id="btn-muraqabah"  class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>👁️</em>المراقبة</button>
+  <button onclick="switchTab('muhasabah')"  id="btn-muhasabah"  class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>📊</em>المحاسبة</button>
+  <button onclick="switchTab('muaqabah')"   id="btn-muaqabah"   class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>🛡️</em>المعاقبة</button>
 </div>
 <div class="grid grid-cols-4 gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 text-[11px] font-semibold text-center">
-  <button onclick="switchTab('mujahadah')" id="btn-mujahadah" class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">5.المجاهدة</button>
-  <button onclick="switchTab('muatabah')"  id="btn-muatabah"  class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">6.المعاتبة</button>
-  <button onclick="switchTab('tools')"     id="btn-tools"     class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">🧮 أدوات</button>
-  <button onclick="switchTab('library')"   id="btn-library"   class="py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100">📚 الدرر</button>
+  <button onclick="switchTab('mujahadah')" id="btn-mujahadah" class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>💪</em>المجاهدة</button>
+  <button onclick="switchTab('muatabah')"  id="btn-muatabah"  class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>💔</em>المعاتبة</button>
+  <button onclick="switchTab('tools')"     id="btn-tools"     class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>🧮</em>أدوات</button>
+  <button onclick="switchTab('library')"   id="btn-library"   class="tab-btn py-2.5 rounded-lg transition-all text-center text-slate-600 hover:bg-slate-100"><em>📚</em>الدرر</button>
 </div>
-<button onclick="switchTab('history')" id="btn-history" class="w-full py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm text-[12px] font-semibold text-slate-700 hover:bg-slate-50 transition-all">
+<button onclick="switchTab('history')" id="btn-history" class="tab-btn w-full py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm text-[12px] font-semibold text-slate-700 hover:bg-slate-50 transition-all">
   📊 السجل والنسخ الاحتياطي والإشعارات
 </button>
 
@@ -165,10 +313,25 @@ tailwind.config = {
       <h2 class="font-bold text-islamic-800 text-sm">مشارطة الصباح</h2>
     </div>
     <p class="text-xs text-slate-600 mb-3 leading-relaxed">«رأس مالك العمر، وهذا يوم جديد قد أمهلك الله فيه.. فاشرط على نفسك صيانة أعضائك السبعة.»</p>
+
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3 text-[11px]">
+      <h4 class="text-xs font-bold text-islamic-800 mb-2">⚖️ الإطار التجاري (ص ١٢٢):</h4>
+      <p class="text-slate-700 leading-relaxed mb-2 amiri-font">«اعلم: أنَّ مطلبَ المتعاملينَ في التجاراتِ، المشتركينَ في البضائعِ عند المحاسبةِ.. سلامةُ الربحِ، وكما أنَّ التاجرَ يستعينُ بشريكهِ فيسلمُ إليهِ المالَ حتى يتجرَ ثم يحاسبَهُ.. فكذلكَ العقلُ هو التاجرُ في طريقِ الآخرةِ، وإنما مطلوبُهُ وربحُهُ تزكيةُ النفسِ إذ بهِ فلاحُها.»</p>
+      <p class="text-slate-700 leading-relaxed mb-2 amiri-font">«وكما أنَّ الشريكَ يصيرُ خصماً منازعاً يجاذبُهُ في الربحِ، فيحتاجُ إلى أن يشارطَهُ أولاً، ويراقبَهُ ثانياً، ويحاسبَهُ ثالثاً، ويعاتبَهُ أو يعاقبَهُ رابعاً.. فكذلكَ العقلُ يحتاجُ إلى مشارطةِ النفسِ أولاً.»</p>
+      <p class="text-[10px] text-emerald-700/80 italic mt-2">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٢٢ —</p>
+    </div>
     <div class="space-y-3">
       <div class="bg-islamic-50 p-3 rounded-xl border border-emerald-100">
         <label for="daily-intention" class="block text-xs font-bold text-islamic-800 mb-1">نية اليوم:</label>
         <input type="text" id="daily-intention" placeholder="إخلاص النية، صلة رحم، ترك الغيبة..." class="w-full text-sm p-2.5 rounded-lg border border-slate-300 bg-white">
+      </div>
+      <div class="bg-islamic-50 border border-emerald-200 rounded-xl p-3 mb-3 text-[11px]">
+        <h4 class="text-xs font-bold text-islamic-800 mb-2">🤝 معاهدة الأعضاء السبعة (ص ١٢٦–١٢٧):</h4>
+        <p class="text-slate-700 leading-relaxed mb-2 amiri-font">«ثم ليستأنفَ لها وصيةً في أعضائهِ السبعة؛ وهيَ: العينُ، والأذنُ، واللسانُ، والبطنُ، والفرجُ، واليدُ، والرجلُ؛ فإنها رعايا خادمةٌ لنفسِهِ في هذه التجارةِ.»</p>
+        <div class="bg-rose-50 border border-rose-200 rounded-lg p-2 text-[10px] text-rose-900 leading-relaxed">
+          <b>لماذا سبعة؟</b> «وإنَّ لجهنمَ سبعةَ أبوابٍ، لكلِّ بابٍ منهم جزءٌ مقسومٌ، وإنما تتعيَّنُ تلك الأبوابُ لمن عصى اللهَ تعالى بهذه الأعضاءِ.»
+        </div>
+        <p class="text-[10px] text-emerald-700/80 italic mt-2">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٢٦–١٢٧ —</p>
       </div>
       <h4 class="text-xs font-bold text-slate-700">معاهدة الأعضاء السبعة:</h4>
       <div class="space-y-2 text-xs">
@@ -178,7 +341,7 @@ tailwind.config = {
         <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="الفرج"><span><b>الفرج:</b> الحفظ والعفة.</span></label>
         <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="اليد"><span><b>اليد:</b> قصرها على ما يرضي الله.</span></label>
         <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="الرجل"><span><b>الرجل:</b> السعي في الطاعة.</span></label>
-        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="القلب"><span><b>القلب:</b> مراقبة الخواطر والإخلاص.</span></label>
+        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="الأذن"><span><b>الأذن:</b> غضّها عن سماع الحرام والغيبة.</span></label>
       </div>
       <button onclick="saveMusharatah()" class="w-full bg-islamic-600 hover:bg-islamic-700 text-white font-bold py-3 rounded-xl text-sm shadow-md">توثيق المشارطة</button>
     </div>
@@ -193,18 +356,49 @@ tailwind.config = {
       <h2 class="font-bold text-islamic-800 text-sm">مراقبة القلب</h2>
     </div>
     <p class="text-xs text-slate-600 mb-3 leading-relaxed">«حقيقة المراقبة: ملاحظة الرقيب، وانصراف الهم إليه.»</p>
+
+    <p class="text-[10px] text-rose-700 leading-relaxed mt-1">⚠️ «تعوذ بالله من الجهل والغفلة، فهو رأس كل شقاوة، وأساس كل خسران» — ص ١٤٧.</p>
     <div class="bg-emerald-50 rounded-xl p-3 mb-3 border border-emerald-200">
-      <h4 class="text-xs font-bold text-emerald-900 mb-2">درجات المراقبة (من الكتاب):</h4>
+      <h4 class="text-xs font-bold text-emerald-900 mb-2">مراتب المراقبة (من الكتاب):</h4>
       <div class="text-[12px] text-emerald-800 space-y-1">
         <p><b>1. مراقبة المقربين:</b> استغراق القلب بالتعظيم حتى لا يبقى متسع لغير الله.</p>
         <p><b>2. مراقبة الورعين:</b> غلبة الحياء واستشعار الاطلاع في كل حركة وسكنة.</p>
+
+        <div class="border-t border-emerald-200 pt-2 mt-2">
+          <b class="block text-emerald-900 mb-1">ب. الحالات الثلاث:</b>
+          <p><b>🕌 في الطاعة:</b> مراقبته بالإخلاص، والإكمال، ومراعاة الأدب، وحراستها عن الآفات.</p>
+          <p><b>⚠️ في المعصية:</b> مراقبته بالتوبة، والندم، والإقلاع، والحياء.</p>
+          <p><b>🌿 في المباح:</b> مراقبته بمراعاة الأدب، ثم بشهود المنعم في النعمة.</p>
+        </div>
+        <p class="text-[10px] text-emerald-700/80 mt-2 italic">— الدرجتان: من الكتاب (يُراجَع)؛ الحالات: ص ١٥٣ —</p>
       </div>
+    </div>
+    <!-- polish-02: details extracted -->
+    <details class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+      <summary class="cursor-pointer text-xs font-bold text-amber-900 select-none">🌱 مراحل الخاطر قبل الفعل — اضغط للتوسيع</summary>
+      <p class="text-[11px] text-amber-800 leading-relaxed mt-2 mb-2">«فإنَّ الخطرةَ الأولى في الباطلِ إذا لم تدفعْ.. أورثَتِ الرغبةَ، والرغبةُ تورثُ الهمَّ... والفعلُ يورثُ البوارَ والمقتَ.»</p>
+      <div class="space-y-1 text-[11px]">
+        <div class="bg-white p-2 rounded border border-emerald-200"><b>1. الخاطرة:</b> فكرة عابرة — <b class="text-emerald-700">هنا القطع</b></div>
+        <div class="bg-white p-2 rounded border border-amber-200"><b>2. الرغبة:</b> ميل قلبي</div>
+        <div class="bg-white p-2 rounded border border-orange-200"><b>3. الهمّ:</b> عزم</div>
+        <div class="bg-white p-2 rounded border border-rose-200"><b>4. القصد:</b> قرار</div>
+        <div class="bg-white p-2 rounded border border-rose-300"><b>5. الفعل:</b> البوار والمقت</div>
+      </div>
+      <p class="text-[10px] text-amber-700/80 italic mt-2">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٤٧ —</p>
+    </details>
+
+    <!-- polish-02: green wrapper restored -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
+      <h4 class="text-xs font-bold text-emerald-900 mb-2">مراقبة القلب والنية:</h4>
+      <p class="text-[12px] text-emerald-800 mb-2 leading-relaxed"><b>القلب:</b> قائد الجوارح — بصلاحه تصلح، وبفساده تفسد. راجع نيتك وخواطرك قبل كل عمل.</p>
+      <p class="text-[10px] text-emerald-700/80 mb-2 leading-relaxed">ورد في المشارطة ضمن الجوارح السبعة اتباعًا لتصنيف الغزالي؛ يُراجَع هنا تفصيلًا.</p>
+      <label class="flex items-center gap-2.5 p-2 bg-white rounded-lg border border-emerald-100 cursor-pointer text-[12px]"><input type="checkbox" class="limb-check w-4 h-4 text-islamic-600 rounded" data-limb="القلب"><span><b>راجعتُ قلبي:</b> النية خالصة، والخواطر مضبوطة.</span></label>
     </div>
     <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
       <span class="text-xs font-bold text-islamic-800 block mb-2">سجل لحظات اليقظة:</span>
       <textarea id="vigilance-note" placeholder="موقف شعرت فيه بمراقبة الله لك..." class="w-full text-sm p-3 rounded-lg border border-emerald-200 h-20 bg-white"></textarea>
       <button onclick="saveVigilanceNote()" class="mt-2 bg-islamic-600 text-white px-4 py-2 rounded-lg text-xs font-bold">إضافة للسجل</button>
-      <div id="vigilance-log" class="mt-3 space-y-1 text-[12px] text-emerald-800"></div>
+      <div id="vigilance-log" class="mt-3 space-y-1 text-[12px] text-emerald-800" aria-live="polite" aria-atomic="false"></div>
     </div>
   </div>
 </div>
@@ -217,21 +411,54 @@ tailwind.config = {
       <h2 class="font-bold text-islamic-800 text-sm">محاسبة المساء</h2>
     </div>
     <p class="text-xs text-slate-600 mb-3 leading-relaxed">«افتح خزائن أوقاتك الأربع والعشرين، وتفقد الدواوين الثلاثة.»</p>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 text-[11px]">
+      <h4 class="text-xs font-bold text-amber-900 mb-2">🛑 المحاسبة قبل العمل (ص ١٢٨):</h4>
+      <p class="text-slate-700 leading-relaxed mb-2 amiri-font">«فهذا وما يجري مجراهُ هو أولُ مقامِ المرابطةِ مع النفسِ، وهي المحاسبةُ قبلَ العملِ. والمحاسبةُ تكونُ تارةً بعدَ العملِ، وتارةً قبلَهُ للتحذيرِ، قال اللهُ تعالى: ﴿وَاعْلَمُوا أَنَّ اللَّهَ يَعْلَمُ مَا فِي أَنفُسِكُمْ فَاحْذَرُوهُ﴾، وهذا للمستقبلِ.»</p>
+      <p class="text-[10px] text-amber-900/80 italic mt-1 leading-relaxed">🔍 تذكير: المحاسبة ليست للماضي فقط — قف قبل الفعل، واسأل نفسك: هل هذا لله؟</p>
+      <p class="text-[10px] text-amber-800/80 italic mt-2">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٢٨ —</p>
+    </div>
     <div class="space-y-4 text-xs">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3 text-[11px]">
+        <h4 class="text-xs font-bold text-islamic-800 mb-2">⏰ الأوقات الأربعة للعاقل (ص ١٥٤):</h4>
+        <p class="text-slate-700 leading-relaxed mb-2 amiri-font">«فَإِنَّ السَّاعَاتِ ثَلَاثٌ: سَاعَةٌ مَضَتْ لَا تَعَبَ فِيهَا عَلَى العَبْدِ كَيْفَمَا انْقَضَتْ، وَسَاعَةٌ مُسْتَقْبَلَةٌ لَمْ تَأْتِ بَعْدُ، وَسَاعَةٌ رَاهِنَةٌ يَنْبَغِي أَنْ يُجَاهِدَ فِيهَا نَفْسَهُ وَيُرَاقِبَ فِيهَا رَبَّهُ.»</p>
+        <p class="text-slate-700 leading-relaxed mb-2 amiri-font">«وَعَلَى العَاقِلِ أَنْ تَكُونَ لَهُ أَرْبَعُ سَاعَاتٍ: سَاعَةٌ يُنَاجِي فِيهَا رَبَّهُ، وَسَاعَةٌ يُحَاسِبُ فِيهَا نَفْسَهُ، وَسَاعَةٌ يُفَكِّرُ فِيهَا فِي صُنْعِ اللهِ تَعَالَى، وَسَاعَةٌ يَخْلُو فِيهَا لِلْمَطْعَمِ وَالمَشْرَبِ؛ فَإِنَّ فِي هَذِهِ السَّاعَةِ عَوْنًا لَهُ عَلَى بَقِيَّةِ السَّاعَاتِ.»</p>
+        <p class="text-[10px] text-emerald-700/80 italic mt-2">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٥٤ —</p>
+      </div>
+      <div class="bg-gradient-to-br from-islamic-600 to-islamic-800 text-white rounded-xl p-3 mb-3 border border-islamic-gold/40">
+        <h4 class="text-xs font-bold text-islamic-gold mb-2">🕯️ خزائن الساعات (ص ١٢٤):</h4>
+        <p class="text-[11px] text-emerald-100 leading-relaxed mb-2 amiri-font">«واعلمي يا نفسُ أنَّ اليومَ والليلةَ أربعٌ وعشرونَ ساعةً، وقد وردَ في الخبر أنَّه يُنشرُ للعبدِ بكلِّ يومٍ وليلةٍ أربعٌ وعشرونَ خزانةً مصفوفةً.»</p>
+        <div class="space-y-1.5 text-[10px]">
+          <div class="bg-emerald-900/40 border border-emerald-500/40 rounded-lg p-2">
+            <b class="text-emerald-200 block mb-1">🟢 نور</b>
+            <p class="text-emerald-100/90 leading-relaxed">«فينالُه من الفرحِ والسرورِ والاستبشارِ — ما لو وُزِّعَ على أهلِ النارِ لأدهشَهُم ذلك الفرحُ عن الإحساسِ بألمِ النارِ.»</p>
+          </div>
+          <div class="bg-rose-900/40 border border-rose-500/40 rounded-lg p-2">
+            <b class="text-rose-200 block mb-1">🔴 سواد</b>
+            <p class="text-rose-100/90 leading-relaxed">«الساعةُ التي عصى اللهَ تعالى فيها — فينالُه من الهولِ والفزعِ ما لو قُسِمَ على أهلِ الجنةِ لتنفَّصَ عليهم نعيمُها.»</p>
+          </div>
+          <div class="bg-amber-900/40 border border-amber-500/40 rounded-lg p-2">
+            <b class="text-amber-200 block mb-1">🟡 فراغ</b>
+            <p class="text-amber-100/90 leading-relaxed">«الساعةُ التي نامَ فيها أو غفَلَ أو اشتغلَ بشيءٍ من مباحاتِ الدنيا — فيتحسَّرُ على خلوِّها.»</p>
+          </div>
+        </div>
+        <p class="text-[10px] text-emerald-300/80 italic mt-2">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٢٤ —</p>
+      </div>
       <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
         <div class="flex justify-between items-center">
           <span class="font-bold text-slate-700">خزائن الساعات الـ24:</span>
           <span class="text-[10px] text-slate-500" id="hours-progress">0 / 24 مصنّفة</span>
         </div>
         <p class="text-[11px] text-slate-500">اضغط على الساعة: طاعة ← معصية ← غفلة ← إلغاء.</p>
-        <div class="space-y-1" id="hours-grid-parent">
-          <div class="text-[10px] font-bold text-slate-500 mt-1">الليل والسحر (00–05)</div>
+        <!-- polish-07b: aria grid cleaned -->
+        <div class="space-y-1" id="hours-grid-parent" role="group" aria-label="خزائن ساعات اليوم الأربع والعشرين">
+          <div class="text-[10px] font-bold text-slate-500 mt-1" role="presentation">الليل والسحر (00–05)</div>
           <div class="grid grid-cols-6 gap-1" data-period="0"></div>
-          <div class="text-[10px] font-bold text-slate-500 mt-2">الصباح والضحى (06–11)</div>
+          <div class="text-[10px] font-bold text-slate-500 mt-2" role="presentation">الصباح والضحى (06–11)</div>
           <div class="grid grid-cols-6 gap-1" data-period="1"></div>
-          <div class="text-[10px] font-bold text-slate-500 mt-2">الظهر والعصر (12–17)</div>
+          <div class="text-[10px] font-bold text-slate-500 mt-2" role="presentation">الظهر والعصر (12–17)</div>
           <div class="grid grid-cols-6 gap-1" data-period="2"></div>
-          <div class="text-[10px] font-bold text-slate-500 mt-2">المغرب والعشاء (18–23)</div>
+          <div class="text-[10px] font-bold text-slate-500 mt-2" role="presentation">المغرب والعشاء (18–23)</div>
           <div class="grid grid-cols-6 gap-1" data-period="3"></div>
         </div>
         <div class="grid grid-cols-3 gap-2 mt-2 text-[11px]">
@@ -241,14 +468,29 @@ tailwind.config = {
         </div>
       </div>
       <div class="bg-islamic-50 p-3 rounded-xl border border-emerald-200 space-y-3">
-        <h4 class="font-bold text-islamic-800">الدواوين الثلاثة:</h4>
-        <div><label for="diwan-why" class="block font-semibold text-slate-700 mb-1">1. ديوان «لِمَ»:</label><input type="text" id="diwan-why" placeholder="لماذا فعلت؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
-        <div><label for="diwan-how" class="block font-semibold text-slate-700 mb-1">2. ديوان «كيف»:</label><input type="text" id="diwan-how" placeholder="بعلم أم بجهل؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
-        <div><label for="diwan-whom" class="block font-semibold text-slate-700 mb-1">3. ديوان «لِمَنْ»:</label><input type="text" id="diwan-whom" placeholder="لله خالصًا أم لمراءاة؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
-        <button onclick="saveMuhasabah()" class="w-full bg-islamic-600 text-white font-bold py-2.5 rounded-lg">حفظ المحاسبة</button>
+        <h4 class="font-bold text-islamic-800 text-xs">⚖️ الدواوين الثلاثة في كل حركة (ص ١٤٤):</h4>
+        <p class="text-[10px] text-slate-600 mt-1 mb-2 leading-relaxed amiri-font">«فإنَّ في الخبرِ أنَّه يُنشَرُ للعبدِ في كلِّ حركةٍ وإن صغُرَتْ ثلاثةُ دواوينَ: الأولُ: لِمَ؟ والثاني: كيفَ؟ والثالثُ: لِمَنْ؟»</p>
+
+        <p class="text-[10px] text-amber-700 italic leading-relaxed mb-2">ملاحظة: التطبيق يقدّم محاسبة يومية مبسطة — لا ديوانًا لكل حركة كما وصف الغزالي.</p>
+        <div><label for="diwan-why" class="block font-bold text-slate-800 mb-0.5 text-[11px]">1. ديوان «لِمَ؟»:</label><input type="text" id="diwan-why" placeholder="لماذا فعلت؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
+        <div><label for="diwan-how" class="block font-bold text-slate-800 mb-0.5 text-[11px]">2. ديوان «كيفَ؟»:</label><input type="text" id="diwan-how" placeholder="بعلم أم بجهل؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
+        <div><label for="diwan-whom" class="block font-bold text-slate-800 mb-0.5 text-[11px]">3. ديوان «لِمَنْ؟»:</label><input type="text" id="diwan-whom" placeholder="لله خالصًا أم لمراءاة؟" class="w-full p-2 rounded border border-slate-300 bg-white text-sm"></div>
+        <div class="pt-2 border-t border-emerald-200" id="stance-block">
+          <p class="text-[11px] font-bold text-islamic-800 mb-2">موقفي بعد المراجعة:</p>
+          <div class="grid grid-cols-1 gap-1.5 text-[11px]">
+            <button type="button" data-stance="hope" onclick="setStance('hope')" class="stance-btn text-right p-2 rounded-lg border border-slate-300 bg-white hover:bg-emerald-50 transition-colors">🌿 أرجو القبول وأحمد الله</button>
+            <button type="button" data-stance="repentance" onclick="setStance('repentance')" class="stance-btn text-right p-2 rounded-lg border border-slate-300 bg-white hover:bg-amber-50 transition-colors">🤲 أستغفر الله وأتوب إليه</button>
+            <button type="button" data-stance="remedy" onclick="setStance('remedy')" class="stance-btn text-right p-2 rounded-lg border border-slate-300 bg-white hover:bg-rose-50 transition-colors">🛠️ أحتاج إلى تدارك وإصلاح</button>
+          </div>
+          <p id="stance-hint" class="text-[10px] text-slate-600 mt-2 hidden leading-relaxed"></p>
+        </div>
+        
+<p class="text-[10px] text-emerald-700/80 italic pt-1 border-t border-emerald-200/60">— إحياء علوم الدين، دار المنهاج، ط١، ١٤٣٢هـ، ص ١٤٤ —</p>
+        
+<button onclick="saveMuhasabah()" class="w-full bg-islamic-600 text-white font-bold py-2.5 rounded-lg">حفظ المحاسبة</button>
       </div>
       <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
-        <span class="text-xs font-bold text-slate-700 block mb-1">نسبة ساعات الطاعة المُسجَّلة:</span>
+        <span class="text-xs font-bold text-slate-700 block mb-1">توزيع الساعات المصنَّفة:</span>
         <div class="text-3xl font-bold text-islamic-700" id="day-score">—</div>
         <div class="text-[10px] text-slate-500 mt-1" id="day-score-label">لم تُصنّف أي ساعة بعد</div>
       </div>
@@ -256,21 +498,44 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- 4. المعاقبة -->
+<!-- 4. المقام الرابع: المعاقبة (التدارك والإصلاح) -->
 <div id="tab-muaqabah" class="tab-content space-y-4 hidden fade-in">
   <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-    <div class="flex items-center gap-2 mb-3">
-      <span class="bg-islamic-lightGold text-islamic-800 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الرابع</span>
-      <h2 class="font-bold text-islamic-800 text-sm">المعاقبة</h2>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-lg text-xs font-bold">المقام الرابع</span>
+      <h2 class="font-bold text-amber-950 text-sm">المعاقبة: التدارك وردّ الحقوق</h2>
     </div>
-    <p class="text-xs text-slate-600 mb-3 leading-relaxed">المقصود: حرمان النفس من بعض المباح على وجه التأديب، لا إلزامها بما يؤذيها.</p>
-    <div class="space-y-3 text-xs">
-      <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl space-y-2">
-        <h4 class="font-bold text-amber-900"><label for="correction-action">خطة المعاقبة:</label></h4>
-        <textarea id="correction-action" placeholder="صيام غد، صدقة، منع نفسي من أمر مباح..." class="w-full text-sm p-3 rounded-lg border border-amber-300 h-24 bg-white"></textarea>
-        <button onclick="saveCorrection()" class="w-full bg-amber-700 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-amber-800">اعتماد خطة المعاقبة</button>
-        <div id="correction-saved" class="text-[11px] text-amber-900 hidden"></div>
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+      «حقيقة المعاقبة عند أرباب المراقبة: <b>تدارك التفريط بمحو أثره، وتأديب النفس بفطمها عن الفضول</b>، لا إرهاق البدن بما يضرّه ولا إيجاب ما لم يوجبه الشرع؛ فالنفس مطية تُساس بالرفق والحزم معًا.»
+    </p>
+    <div class="space-y-2 text-[11px] mb-3">
+      <div class="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/90 text-amber-950">
+        <b class="text-amber-900 block mb-1">⚖️ 1. حقوق العباد ومظالمهم (مبنية على المشاحة):</b>
+        <p class="leading-relaxed text-[11px]">
+          إن كان الذنب متعلقًا بحق مالي أو عيني فيلزم رده لأهله. أما المظالم المعنوية (كالغيبة والبهتان) ففيها تفصيل فقهي معروف: إن أمكن التحلل دون مفسدة فذاك، وإن خِيف أن يورث إعلامه عداوة أو قطيعة أعظم، فالمشهور عند جمع من المحققين الاكتفاء بالتوبة والاستغفار له والثناء عليه في المواطن التي ذُكر فيها بسوء. ويُرجع في كل نازلة إلى أهل الفتيا.
+        </p>
       </div>
+      <div class="bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-200/90 text-emerald-950">
+        <b class="text-emerald-900 block mb-1">🌿 2. حق الله تعالى وجبر التقصير:</b>
+        <p class="leading-relaxed text-[11px]">
+          تجريد التوبة والندم، والمبادرة إلى قضاء ما وجب قضاؤه شرعًا من صلاة أو صيام بحسب تفصيل الفقهاء في العذر والترك، وإتباع السيئة الحسنة تمحها (بالصدقة، أو ركعتي التوبة، أو الاستغفار). ولا يُلزم العبد نفسه بكفارة دون موجب شرعي لها.
+        </p>
+      </div>
+      <div class="bg-rose-50/80 p-2.5 rounded-xl border border-rose-200/90 text-rose-950">
+        <b class="text-rose-900 block mb-1">🛡️ 3. فطم النفس وسدّ الذرائع:</b>
+        <p class="leading-relaxed text-[11px]">
+          تأديب النفس بالامتناع المؤقت عن بعض الفضول والمباحات التي كانت سببًا في الجرأة على المعصية (كفضول الشاشات، أو فضول السهر والكلام)، مع الحذر من تحريم ما أحل الله أو إلحاق الضرر بالبدن؛ فالمقصود إصلاح السلوك لا إيقاع العنت.
+        </p>
+      </div>
+    </div>
+    <p class="text-[10px] text-slate-500 italic mb-2 leading-relaxed">
+      * هذه المعالم إرشادات تربوية للمراجعة وليست فتاوى شرعية خاصة؛ فاستفتِ أهل العلم الموثوقين فيما يشكل من حقوق العباد وقضاء العبادات.
+    </p>
+    <div class="space-y-2 text-xs">
+      <label for="correction-action" class="block font-bold text-slate-700">خطة التدارك والإصلاح الشخصية لليوم:</label>
+      <textarea id="correction-action" placeholder="دوّن خطتك العملية المناسبة لتقصيرك اليوم (مثال: أرد أمانة فلان، أستغفر لمن اغتبته وأذكره بالخير، أقضي ما فاتني، وأفطم نفسي الليلة عن فضول الهاتف...)" class="w-full text-sm p-3 rounded-lg border border-amber-300 h-24 bg-white leading-relaxed focus:ring-1 focus:ring-amber-500 focus:outline-none"></textarea>
+      <button onclick="saveCorrection()" class="w-full bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white py-2.5 rounded-lg font-bold text-xs transition-colors shadow-sm">اعتماد خطة التدارك والإصلاح</button>
+      <div id="correction-saved" class="text-[11px] text-amber-900 hidden font-semibold bg-amber-100/80 p-2.5 rounded-lg border border-amber-200"></div>
     </div>
   </div>
 </div>
@@ -351,7 +616,7 @@ tailwind.config = {
     <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-[12px]">
       <p class="text-amber-900 font-bold mb-1">🕰️ حكاية وعظية منقولة (تحتاج إلى توثيق):</p>
       <p class="text-amber-800 amiri-font text-[14px] leading-relaxed">قال توبة بن الصِّمَّة: «حسبتُ عمري فوجدته ستين سنة، فحسبتُ أيامها فإذا هي واحدٌ وعشرون ألفًا وخمسمئة يوم...»</p>
-      <p class="text-[10px] text-amber-700 mt-2">يُراجع نص الحكاية ومصدرها؛ فالعدد المذكور لا يطابق حاصل 60 × 365، ولا يُعتمد بوصفه حسابًا دقيقًا.</p>
+      <p class="text-[10px] text-amber-700 mt-2">العدد يُقرأ في سياق <b>السنين القمرية الهجرية</b> (60 × 354.37 ≈ 21,262 يومًا)، فالحكاية <b>بلاغية في سياقها</b> لا خطأ حسابيًا. يبقى نصها ومصدرها بحاجة إلى تحقق.</p>
     </div>
     <div class="mt-3 space-y-2 text-xs">
       <label for="birth-year" class="block font-bold text-slate-700">سنة ميلادك:</label>
@@ -390,26 +655,22 @@ tailwind.config = {
       <h4 class="font-bold text-islamic-700 text-xs">تطور الأداء (آخر 7 أيام):</h4>
       <div id="analytics-chart" class="h-32 flex items-end gap-1.5 pt-4 px-2 border-b border-slate-300"></div>
       <div class="flex justify-between text-[9px] text-slate-500 px-1"><span>الأقدم</span><span>اليوم</span></div>
-      <p class="text-[10px] text-slate-500 text-center">الذهبي = اليوم، الأخضر = يوم له سجل، الرمادي = لا يوجد سجل.</p>
+      <p class="text-[10px] text-slate-500 text-center">العمود الذهبي = اليوم، الأخضر = أيام مكتملة.</p>
     </div>
-    <div class="bg-white p-3 rounded-xl border border-slate-200">
-  <h4 class="font-bold text-islamic-700 text-xs mb-2">🧠 تحليل الأسبوع</h4>
-  <div id="weeklyInsights"></div>
-</div>
-    <div id="history-container" class="space-y-2 text-xs"></div>
+    <div id="history-container" class="space-y-2 text-xs" aria-live="polite"></div>
 
     <div class="border-t pt-3 space-y-2">
       <h4 class="font-bold text-islamic-800 text-xs">🔔 التذكير</h4>
-      <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-[10px] text-emerald-900 leading-relaxed mb-2">
-  <b>تنبيه مهم:</b> في نسخة أندرويد (APK)، تعتمد التذكيرات عند إغلاق التطبيق على نجاح جدولة الإشعارات الأصلية ومنح الأذونات، وقد تختلف القيود حسب الجهاز وإعدادات البطارية.
-  في نسخة الويب (PWA)، التذكيرات داخلية وتعتمد على بقاء الصفحة/التطبيق نشطًا أو عودته للمقدمة؛ لا يُضمن وصولها بعد إغلاقه.
-</div>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-[10px] text-amber-900 leading-relaxed mb-2">
+        <b>⚠️ تنبيه تقني صريح:</b> الإشعارات هنا تعمل <b>فقط عندما يكون التطبيق مفتوحًا</b> (أو في الخلفية القريبة).
+        <b>لا تعمل عندما يكون التطبيق مغلقًا تمامًا</b> — هذا قيد في تطبيقات الويب المثبّتة (PWA)، وليس خللًا في التطبيق.
+      </div>
       <p class="text-[10px] text-slate-500 leading-relaxed mb-2">
         <b>على iPhone/iPad:</b> يتطلب تثبيت التطبيق على الشاشة الرئيسية (iOS 16.4+) حتى تعمل الإشعارات.
         افتح التطبيق من Safari ← زر المشاركة ← «إضافة إلى الشاشة الرئيسية».
       </p>
       <p class="text-[10px] text-slate-500 leading-relaxed">
-        تذكيرات ويب داخلية تُفحص عند فتح التطبيق وعودته للمقدمة وأثناء بقائه نشطًا؛ لا تُعد بديلًا مضمونًا عن إشعارات خادمية عند إغلاق التطبيق. يلزم منح الإذن مرّة واحدة.
+        تذكيرات داخلية تُطلق عند فتح التطبيق أو رجوعه للمقدمة. يلزم منح الإذن مرّة واحدة.
       </p>
       <div class="grid grid-cols-2 gap-2">
         <div><label for="notif-morning" class="block text-[10px] text-slate-600 mb-1">وقت المشارطة:</label><input type="time" id="notif-morning" value="05:30" class="w-full text-sm p-2 rounded border border-slate-300 bg-white"></div>
@@ -428,11 +689,6 @@ tailwind.config = {
         <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
       </div>
     </div>
-<div class="border-t pt-3 space-y-2">
-  <h4 class="font-bold text-islamic-800 text-xs">📊 تحليل خارجي</h4>
-  <p class="text-[10px] text-slate-500">صدّر سجلك كملف CSV لفتحه في Excel أو Google Sheets.</p>
-  <button onclick="exportCSV()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-lg text-xs font-semibold">📊 تصدير CSV</button>
-</div>
 
     <div class="border-t pt-3 text-[10px] text-slate-500 leading-relaxed">
       <b>الخصوصية:</b> كل بياناتك تُخزَّن في متصفح جهازك فقط.
@@ -441,15 +697,6 @@ tailwind.config = {
 </div>
 
 </main>
-
-<!-- ✅ Modal موحّد عربي أنيق -->
-<div id="customModalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
-  <div class="modal-card">
-    <div id="modalTitle" class="modal-header">تنبيه</div>
-    <div id="modalBody" class="modal-body"></div>
-    <div id="modalFooter" class="modal-footer"></div>
-  </div>
-</div>
 
 <script>
 /* ═══════════════════════ أدوات آمنة ═══════════════════════ */
@@ -497,6 +744,8 @@ function normalizeArabic(s) {
     .replace(/ئ/g, 'ي')
     .replace(/ة/g, 'ه')
     .replace(/[^\u0600-\u06FF\s\w]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
     .toLowerCase();
 }
 
@@ -515,11 +764,32 @@ function isCustomTaskKey(key) {
 function cloneAppData() {
   return JSON.parse(JSON.stringify(appData));
 }
+function snapshotForRollback(keys) {
+  const snap = {};
+  for (const k of keys) {
+    const v = appData[k];
+    snap[k] = Array.isArray(v) ? v.slice() : (v && typeof v === 'object' ? {...v} : v);
+  }
+  return snap;
+}
+function saveOrRestoreKeys(snapshot) {
+  if (save()) return true;
+  Object.assign(appData, snapshot);
+  const sc = document.getElementById('streak-count');
+  if (sc) sc.innerText = appData.currentStreak;
+  // h7-18: longest-streak
+  const lsEl = document.getElementById('longest-streak');
+  if (lsEl) lsEl.innerText = appData.longestStreak || 0;
+  return false;
+}
 function saveOrRollback(previousState) {
   if (save()) return true;
   appData = previousState;
-  updateDisplay();
-  restoreFormState();
+  const sc = document.getElementById('streak-count');
+  if (sc) sc.innerText = appData.currentStreak;
+  // h7-18: longest-streak
+  const lsEl = document.getElementById('longest-streak');
+  if (lsEl) lsEl.innerText = appData.longestStreak || 0;
   return false;
 }
 
@@ -555,6 +825,7 @@ function defaultState() {
   return {
     schemaVersion: 7,
     currentStreak: 0,
+    longestStreak: 0,
     lastActivityDate: null,
     lastActiveDate: currentDayKey(),
     lights: 0, darks: 0, empties: 0,
@@ -571,11 +842,8 @@ function defaultState() {
 function validateImport(obj) {
   const d = defaultState();
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new TypeError('بنية ملف البيانات غير صالحة.');
-  const knownKeys = ['schemaVersion','currentStreak','lastActivityDate','lastActiveDate','lights','darks','empties','hours','musharatah','muhasabah','muatabah','mujahadah','vigilanceLog','history','birthYear','notifications'];
-  const payloadKeys = knownKeys.filter(k => k !== 'schemaVersion' && Object.prototype.hasOwnProperty.call(obj, k));
-  const structuralKeys = ['hours','history','mujahadah','musharatah','muhasabah','muatabah','notifications','vigilanceLog'];
-  if (payloadKeys.length < 2 || !payloadKeys.some(k => structuralKeys.includes(k))) {
-    throw new TypeError('ملف الاستيراد لا يحتوي على بنية كافية من بيانات التطبيق.');
+  if (!Object.prototype.hasOwnProperty.call(obj, 'hours') || !Object.prototype.hasOwnProperty.call(obj, 'history')) {
+    throw new TypeError('ملف الاستيراد يفتقر إلى البنية الهيكلية الأساسية (hours + history).');
   }
   const num = v => Number.isFinite(v) && v >= 0 && v <= 1000000;
   const dayCount = v => Number.isInteger(v) && v >= 0 && v <= 24;
@@ -585,13 +853,14 @@ function validateImport(obj) {
   }
 
   d.currentStreak    = num(obj.currentStreak) ? Math.floor(obj.currentStreak) : 0;
+  d.longestStreak    = num(obj.longestStreak) ? Math.floor(obj.longestStreak) : d.currentStreak;
   d.lastActivityDate = coerceDate(obj.lastActivityDate);
   d.lastActiveDate   = coerceDate(obj.lastActiveDate) || currentDayKey();
 
   d.lights  = dayCount(obj.lights)  ? obj.lights  : 0;
   d.darks   = dayCount(obj.darks)   ? obj.darks   : 0;
   d.empties = dayCount(obj.empties) ? obj.empties : 0;
-  d.birthYear = Number.isInteger(obj.birthYear) && obj.birthYear > 1900 && obj.birthYear <= new Date().getFullYear() ? obj.birthYear : null;
+  d.birthYear = Number.isInteger(obj.birthYear) && obj.birthYear >= 1900 && obj.birthYear <= new Date().getFullYear() ? obj.birthYear : null;
 
   d.hours = Array.isArray(obj.hours)
     ? obj.hours.slice(0,24).map(h => ['light','dark','empty'].includes(h) ? h : null)
@@ -601,12 +870,13 @@ function validateImport(obj) {
   const m = obj.musharatah && typeof obj.musharatah === 'object' ? obj.musharatah : {};
   d.musharatah = {
     intention: str(m.intention) ? m.intention : '',
-    limbs: Array.isArray(m.limbs) ? m.limbs.filter(str).slice(0,20) : [],
+    limbs: Array.isArray(m.limbs) ? m.limbs.filter(l => ['العين','الأذن','اللسان','البطن','الفرج','اليد','الرجل','القلب'].includes(l)).slice(0,8) : [],
     date: coerceDate(m.date) || ''
   };
 
   const h = obj.muhasabah && typeof obj.muhasabah === 'object' ? obj.muhasabah : {};
-  d.muhasabah = { why: str(h.why)?h.why:'', how: str(h.how)?h.how:'', whom: str(h.whom)?h.whom:'' };
+  const VALID_STANCES = ['hope', 'repentance', 'remedy'];
+  d.muhasabah = { why: str(h.why)?h.why:'', how: str(h.how)?h.how:'', whom: str(h.whom)?h.whom:'', stance: VALID_STANCES.includes(h.stance) ? h.stance : null };
 
   const t = obj.muatabah && typeof obj.muatabah === 'object' ? obj.muatabah : {};
   d.muatabah = {
@@ -626,7 +896,7 @@ function validateImport(obj) {
     .forEach(([key, value]) => { d.mujahadah[key] = value; });
 
   if (Array.isArray(obj.vigilanceLog)) {
-    d.vigilanceLog = obj.vigilanceLog.slice(0,100).map(x => ({
+    d.vigilanceLog = obj.vigilanceLog.slice(0,50).map(x => ({
       text: str(x?.text) ? x.text : '',
       date: coerceDate(x?.date) || ''
     })).filter(x => x.text);
@@ -646,16 +916,18 @@ function validateImport(obj) {
       hoursFilled: dayCount(item?.hoursFilled) ? item.hoursFilled : 0,
       musharatah: {
         intention: str(item?.musharatah?.intention) ? item.musharatah.intention : '',
-        limbs: Array.isArray(item?.musharatah?.limbs) ? item.musharatah.limbs.filter(str).slice(0,20) : []
+        limbs: Array.isArray(item?.musharatah?.limbs) ? item.musharatah.limbs.filter(l => ['العين','الأذن','اللسان','البطن','الفرج','اليد','الرجل','القلب'].includes(l)).slice(0,8) : []
       },
       muhasabah: {
         why: str(item?.muhasabah?.why)?item.muhasabah.why:'',
         how: str(item?.muhasabah?.how)?item.muhasabah.how:'',
-        whom:str(item?.muhasabah?.whom)?item.muhasabah.whom:''
+        whom:str(item?.muhasabah?.whom)?item.muhasabah.whom:'',
+        stance: ['hope','repentance','remedy'].includes(item?.muhasabah?.stance) ? item.muhasabah.stance : null
       },
       muatabah: {
         note: str(item?.muatabah?.note) ? item.muatabah.note : '',
-        correctionAction: str(item?.muatabah?.correctionAction) ? item.muatabah.correctionAction : ''
+        correctionAction: str(item?.muatabah?.correctionAction) ? item.muatabah.correctionAction : '',
+        checkedIds: Array.isArray(item?.muatabah?.checkedIds) ? item.muatabah.checkedIds.filter(x => MUATABAH_IDS.includes(x)) : []
       },
       mujahadah: (item?.mujahadah && typeof item.mujahadah === 'object')
         ? Object.fromEntries([
@@ -729,28 +1001,63 @@ function save() {
     return false;
   }
 }
-/* ✅ مراقبة حجم التخزين — تنبيه قبل الامتلاء */
-function estimateStorageUsage() {
-  try {
-    let total = 0;
-    for (let key in localStorage) {
-      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
-        total += (localStorage[key] || '').length + key.length;
-      }
-    }
-    return total * 2; /* UTF-16: بايتان لكل حرف */
-  } catch (_) { return 0; }
+function autoPersist() {
+  const before = cloneAppData();
+  const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  const intention = val('daily-intention');
+  const limbs = Array.from(document.querySelectorAll('.limb-check:checked')).map(cb => cb.dataset.limb);
+  const why = val('diwan-why'), how = val('diwan-how'), whom = val('diwan-whom');
+  const note = val('muatabah-note');
+  const checkedIds = Array.from(document.querySelectorAll('.muatabah-check:checked')).map(cb => cb.dataset.id).filter(Boolean);
+  const correction = val('correction-action');
+  const mujahadahKeys = {};
+  document.querySelectorAll('.mujahadah-check').forEach(cb => {
+    const key = cb.dataset.task;
+    if (MUJAHADAH_KEYS.includes(key) || isCustomTaskKey(key)) mujahadahKeys[key] = cb.checked;
+  });
+  Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).forEach(key => {
+    if (!(key in mujahadahKeys)) mujahadahKeys[key] = !!appData.mujahadah[key];
+  });
+  appData.musharatah = { ...(appData.musharatah || {}), intention, limbs, date: currentDayKey() };
+  appData.muhasabah = { ...(appData.muhasabah || {}), why, how, whom };
+  appData.muatabah = { ...(appData.muatabah || {}), note, checkedIds, date: currentDayKey() };
+  appData.mujahadah = mujahadahKeys;
+  if (correction) {
+    appData.muatabah.correctionAction = correction;
+    appData.muatabah.correctionDate = currentDayKey();
+  } else {
+    delete appData.muatabah.correctionAction;
+    delete appData.muatabah.correctionDate;
+  }
+  const mujahadahHasAny = Object.values(mujahadahKeys).some(Boolean);
+  const hasAny = intention || limbs.length || why || how || whom || note || checkedIds.length || correction || mujahadahHasAny;
+  if (hasAny) recordActivity();
+  if (!save()) { appData = before; return false; }
+  const sc = document.getElementById('streak-count');
+  if (sc) sc.innerText = appData.currentStreak;
+  // polish-04: autopersist streak sync
+  const lsEl = document.getElementById('longest-streak');
+  if (lsEl) lsEl.innerText = appData.longestStreak || 0;
+  if (typeof renderCorrectionDisplay === 'function') renderCorrectionDisplay();
+  return true;
+}
+const autoSaveBound = new WeakSet();
+function attachAutoSave() {
+  ['daily-intention','diwan-why','diwan-how','diwan-whom','muatabah-note','correction-action'].forEach(id => {
+    const e = document.getElementById(id);
+    if (!e || autoSaveBound.has(e)) return;
+    autoSaveBound.add(e);
+    let t;
+    e.addEventListener('input', () => { clearTimeout(t); t = setTimeout(autoPersist, 1500); });
+    e.addEventListener('blur', autoPersist);
+  });
+  document.querySelectorAll('.limb-check, .muatabah-check, .mujahadah-check').forEach(cb => {
+    if (autoSaveBound.has(cb)) return;
+    autoSaveBound.add(cb);
+    cb.addEventListener('change', autoPersist);
+  });
 }
 
-function checkStorageQuota() {
-  const used = estimateStorageUsage();
-  const limit = 5 * 1024 * 1024; /* 5 MB — الحد الشائع */
-  const pct = Math.round((used / limit) * 100);
-  if (pct >= 80) {
-    showToast('⚠️ التخزين ' + pct + '% ممتلئ — صدّر نسخة احتياطية');
-  }
-  return pct;
-}
 /* ═══════════════════════ سلسلة الالتزام ═══════════════════════ */
 function yesterdayISO() {
   const d = new Date(); d.setDate(d.getDate() - 1);
@@ -769,11 +1076,15 @@ function ensureCurrentDay() {
 function recordActivity() {
   const today = currentDayKey();
   if (appData.lastActivityDate === today) return;
+  if (appData.lastActivityDate && appData.lastActivityDate > today) {
+    return; // التاريخ في المستقبل — قفزة ساعة، تجاهل بلا عقوبة
+  }
   if (appData.lastActivityDate === yesterdayISO()) {
     appData.currentStreak = (appData.currentStreak || 0) + 1;
   } else {
     appData.currentStreak = 1;
   }
+  appData.longestStreak = Math.max(appData.longestStreak || 0, appData.currentStreak || 0);
   appData.lastActivityDate = today;
 }
 
@@ -782,12 +1093,15 @@ function archiveFullDay() {
   const hadActivity =
     appData.lights + appData.darks + appData.empties > 0 ||
     Object.values(appData.mujahadah || {}).some(Boolean) ||
-    (appData.muhasabah?.why || appData.muhasabah?.how || appData.muhasabah?.whom) ||
-    (appData.muatabah?.note || appData.muatabah?.correctionAction) ||
+    (appData.muhasabah?.why || appData.muhasabah?.how || appData.muhasabah?.whom || appData.muhasabah?.stance) ||
+    (appData.muatabah?.note || appData.muatabah?.correctionAction || appData.muatabah?.checkedIds?.length) ||
     (appData.musharatah?.intention || appData.musharatah?.limbs?.length) ||
     (appData.vigilanceLog?.length > 0);
   if (!hadActivity) return;
 
+  // lockdown-04: archive dedup guard
+  const existingIdx = (appData.history || []).findIndex(h => h.date === appData.lastActiveDate);
+  if (existingIdx !== -1) appData.history.splice(existingIdx, 1);
   appData.history.unshift({
     date: appData.lastActiveDate,
     lights: appData.lights, darks: appData.darks, empties: appData.empties,
@@ -797,11 +1111,13 @@ function archiveFullDay() {
     hoursFilled: (appData.hours || []).filter(Boolean).length,
     musharatah: { intention: appData.musharatah?.intention || '', limbs: [...(appData.musharatah?.limbs || [])] },
     muhasabah: {
-      why: appData.muhasabah?.why || '', how: appData.muhasabah?.how || '', whom: appData.muhasabah?.whom || ''
+      why: appData.muhasabah?.why || '', how: appData.muhasabah?.how || '', whom: appData.muhasabah?.whom || '',
+      stance: appData.muhasabah?.stance || null
     },
     muatabah: {
       note: appData.muatabah?.note || '',
-      correctionAction: appData.muatabah?.correctionAction || ''
+      correctionAction: appData.muatabah?.correctionAction || '',
+      checkedIds: [...(appData.muatabah?.checkedIds || [])]
     },
     mujahadah: {...(appData.mujahadah || {})},
     vigilance: [...(appData.vigilanceLog || [])]
@@ -810,97 +1126,29 @@ function archiveFullDay() {
 }
 
 function collectDirtyFields() {
-  // لا تعتبر القيم المحفوظة مسبقًا مسودات لمجرد أن الحقول ما زالت معبأة.
-  const fields = {
-    'daily-intention': appData.musharatah?.intention || '',
-    'diwan-why': appData.muhasabah?.why || '',
-    'diwan-how': appData.muhasabah?.how || '',
-    'diwan-whom': appData.muhasabah?.whom || '',
-    'muatabah-note': appData.muatabah?.note || '',
-    'correction-action': appData.muatabah?.correctionAction || ''
-  };
+  const ids = ['daily-intention','diwan-why','diwan-how','diwan-whom',
+               'muatabah-note','correction-action'];
   const out = {};
-  Object.entries(fields).forEach(([id, savedValue]) => {
+  ids.forEach(id => {
     const el = document.getElementById(id);
-    if (el && el.value !== String(savedValue ?? '')) out[id] = el.value;
+    if (el && el.value && el.value.trim()) out[id] = el.value;
   });
   return out;
 }
 
-// التغييرات غير المحفوظة في مربعات الاختيار وبعض الحقول الأخرى تحفظ كمسودات
-// أثناء تبديل اليوم، لكنها لا تُكتب إلى بيانات اليوم الجديد تلقائيًا.
-function collectUnsavedControls() {
-  const drafts = { text: collectDirtyFields() };
-  const selected = selector => Array.from(document.querySelectorAll(selector + ':checked'))
-    .map(el => el.dataset.limb || el.dataset.id || el.dataset.task).filter(Boolean).sort();
-  const sameArray = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-  const limbSelected = selected('.limb-check');
-  const limbSaved = [...(appData.musharatah?.limbs || [])].sort();
-  if (!sameArray(limbSelected, limbSaved)) drafts.limbs = limbSelected;
-  const muatabahSelected = selected('.muatabah-check');
-  const muatabahSaved = [...(appData.muatabah?.checkedIds || [])].sort();
-  if (!sameArray(muatabahSelected, muatabahSaved)) drafts.muatabahChecks = muatabahSelected;
-
-  const taskChecks = Array.from(document.querySelectorAll('.mujahadah-check'));
-  const taskDraft = {};
-  let taskChanged = false;
-  taskChecks.forEach(cb => {
-    const key = cb.dataset.task;
-    if (!key) return;
-    taskDraft[key] = cb.checked;
-    if (cb.checked !== (appData.mujahadah?.[key] === true)) taskChanged = true;
-  });
-  if (taskChanged) drafts.tasks = taskDraft;
-
-  const birth = document.getElementById('birth-year');
-  if (birth && birth.value !== (appData.birthYear == null ? '' : String(appData.birthYear))) drafts.birthYear = birth.value;
-  for (const [id, saved] of [['notif-morning', appData.notifications?.morning || '05:30'], ['notif-evening', appData.notifications?.evening || '21:00']]) {
+function syncUIFromState({ preserveDirty = {} } = {}) {
+  restoreFormState();
+  Object.entries(preserveDirty).forEach(([id, v]) => {
     const el = document.getElementById(id);
-    if (el && el.value !== saved) drafts[id] = el.value;
-  }
-  const vigilance = document.getElementById('vigilance-note');
-  if (vigilance?.value.trim()) drafts.vigilanceNote = vigilance.value;
-  const taskInput = document.getElementById('new-task-input');
-  if (taskInput?.value.trim()) drafts.newTask = taskInput.value;
-  return drafts;
-}
-
-function applyUnsavedControls(drafts) {
-  if (!drafts) return;
-  Object.entries(drafts.text || {}).forEach(([id, value]) => {
-    const el = document.getElementById(id);
-    if (el) el.value = value;
+    if (el) el.value = v;
   });
-  if (Array.isArray(drafts.limbs)) {
-    const set = new Set(drafts.limbs);
-    document.querySelectorAll('.limb-check').forEach(el => el.checked = set.has(el.dataset.limb));
-  }
-  if (Array.isArray(drafts.muatabahChecks)) {
-    const set = new Set(drafts.muatabahChecks);
-    document.querySelectorAll('.muatabah-check').forEach(el => el.checked = set.has(el.dataset.id));
-  }
-  if (drafts.tasks) document.querySelectorAll('.mujahadah-check').forEach(el => {
-    if (Object.prototype.hasOwnProperty.call(drafts.tasks, el.dataset.task)) el.checked = drafts.tasks[el.dataset.task];
-  });
-  if (Object.prototype.hasOwnProperty.call(drafts, 'birthYear')) {
-    const el = document.getElementById('birth-year'); if (el) el.value = drafts.birthYear;
-  }
-  for (const id of ['notif-morning','notif-evening']) if (Object.prototype.hasOwnProperty.call(drafts, id)) {
-    const el = document.getElementById(id); if (el) el.value = drafts[id];
-  }
-  if (Object.prototype.hasOwnProperty.call(drafts, 'vigilanceNote')) {
-    const el = document.getElementById('vigilance-note'); if (el) el.value = drafts.vigilanceNote;
-  }
-  if (Object.prototype.hasOwnProperty.call(drafts, 'newTask')) {
-    const el = document.getElementById('new-task-input'); if (el) el.value = drafts.newTask;
-  }
 }
 
 function rolloverIfNeeded() {
   const today = currentDayKey();
   if (appData.lastActiveDate === today) return false;
 
-  const dirty = collectUnsavedControls();
+  const dirty = collectDirtyFields();
   const before = cloneAppData();
   archiveFullDay();
   const yest = yesterdayISO();
@@ -920,18 +1168,15 @@ function rolloverIfNeeded() {
 
   const ok = saveOrRollback(before);
 
-  // استعد البيانات المحفوظة أولًا، ثم أعد المسودات التي تختلف عنها فقط.
-  restoreFormState();
-  applyUnsavedControls(dirty);
+  syncUIFromState({ preserveDirty: dirty });
 
-  // ✅ الآن نُقرّر: فشل أم نجاح
   if (!ok) {
     rolloverBlocked = true;
     return false;
   }
 
-  if (Object.keys(dirty.text || {}).length || Object.keys(dirty).some(k => !['text'].includes(k))) {
-    showToast('🌅 يوم جديد — احتُفظ بالمسودات في الحقول؛ راجعها واحفظ ما يلزم.');
+  if (Object.keys(dirty).length) {
+    showToast('🌅 يوم جديد — راجع الحقول غير المحفوظة قبل الحفظ.');
   }
   return true;
 }
@@ -982,6 +1227,7 @@ const libraryData = [
   {cat:'quran', ref:'الزمر: 47', text:'﴿وَبَدَا لَهُم مِّنَ اللَّهِ مَا لَمْ يَكُونُوا يَحْتَسِبُونَ﴾'},
   {cat:'quran', ref:'المؤمنون: 99-100', text:'﴿رَبِّ ارْجِعُونِ ۞ لَعَلِّي أَعْمَلُ صَالِحًا فِيمَا تَرَكْتُ ۚ كَلَّا﴾'},
   {cat:'quran', ref:'الأنعام: 31', text:'﴿قَدْ خَسِرَ الَّذِينَ كَذَّبُوا بِلِقَاءِ اللَّهِ﴾'},
+  {cat:'quran', ref:'الشمس: 9-10', text:'﴿قَدۡ أَفۡلَحَ مَن زَكَّىٰهَا ۞ وَقَدۡ خَابَ مَن دَسَّىٰهَا﴾'},
 
   {cat:'hadith', ref:'الترمذي وابن ماجه (حسّنه الترمذي، وضعّفه الألباني)', text:'«الكَيِّسُ مَنْ دَانَ نَفْسَهُ وَعَمِلَ لِمَا بَعْدَ الْمَوْتِ، وَالْأَحْمَقُ مَنْ أَتْبَعَ نَفْسَهُ هَوَاهَا وَتَمَنَّى عَلَى اللَّهِ الْأَمَانِيَّ»'},
   {cat:'hadith', ref:'أبو نعيم والبيهقي (وضعّفه الألباني لاحقًا)', text:'«لَيْسَ يَتَحَسَّرُ أَهْلُ الْجَنَّةِ إِلَّا عَلَى سَاعَةٍ مَرَّتْ بِهِمْ لَمْ يَذْكُرُوا اللَّهَ فِيهَا»'},
@@ -989,6 +1235,7 @@ const libraryData = [
   {cat:'hadith', ref:'الطبراني — يُراجَع تخريجه', text:'«إِنَّ رُوحَ الْقُدُسِ نَفَثَ فِي رُوعِي: أَنَّ نَفْسًا لَنْ تَمُوتَ حَتَّى تَسْتَكْمِلَ رِزْقَهَا»'},
   {cat:'hadith', ref:'ابن أبي الدنيا — يُراجَع تخريجه', text:'«لَا يَكُونُ الْمُؤْمِنُ طَاعِنًا إِلَّا فِي ثَلَاثٍ: تَزَوُّدٍ لِمَعَادٍ، أَوْ مَرَمَّةٍ لِمَعَاشٍ، أَوْ لَذَّةٍ فِي غَيْرِ مُحَرَّمٍ»'},
   {cat:'hadith', ref:'من حديث سلمان وأبي الدرداء — أقرّه النبي ﷺ بقوله: «صدق سلمان»', text:'«إِنَّ لِنَفْسِكَ عَلَيْكَ حَقًّا، وَلِرَبِّكَ عَلَيْكَ حَقًّا، فَأَعْطِ كُلَّ ذِي حَقٍّ حَقَّهُ»'},
+  {cat:'hadith', ref:'صحيح البخاري (50)، صحيح مسلم (8) — حديث جبريل', text:'«أَنْ تَعْبُدَ اللهَ كَأَنَّكَ تَرَاهُ، فَإِنْ لَمْ تَكُنْ تَرَاهُ فَإِنَّهُ يَرَاكَ»'},
 
   {cat:'salaf', ref:'عمر بن الخطاب رضي الله عنه', text:'«حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا، وَزِنُوهَا قَبْلَ أَنْ تُوزَنُوا، وَتَهَيَّأُوا لِلْعَرْضِ الْأَكْبَرِ»'},
   {cat:'salaf', ref:'الحسن البصري', text:'«لا يَزَالُ الْعَبْدُ بِخَيْرٍ مَا كَانَتْ لَهُ وَاعِظَةٌ مِنْ نَفْسِهِ، وَمُحَاسَبَةٌ لَهَا»'},
@@ -1003,10 +1250,27 @@ const libraryData = [
   {cat:'salaf', ref:'الأحنف بن قيس', text:'كان يقول في صلاته بالليل: «يَا حَنِيفُ؛ مَا حَمَلَكَ عَلَى مَا صَنَعْتَ يَوْمَ كَذَا؟»'},
   {cat:'salaf', ref:'سعيد بن جبير', text:'«لَا يَكُونُ الْعَبْدُ مِنَ الْمُتَّقِينَ حَتَّى يُحَاسِبَ نَفْسَهُ»'},
 
-  {cat:'story', ref:'إحياء علوم الدين — موضع النقل واللفظ بحاجة إلى تحقق', title:'الراعي وعمر', text:'سأل عمرُ راعيًا: بِعْنِي شاة. قال: إني مملوك! قال: قُلْ لسيدك: أكلها الذئب! قال: «فأين الله؟!» فبكى عمر: أعتقتُك في الدنيا، وأرجو أن تعتقك في الآخرة.'},
+  {cat:'salaf', ref:'ابن المبارك — تهذيب الأسرار (ص 163)', text:'«كُنْ أَبَدًا كَأَنَّكَ تَرَى اللهَ عَزَّ وَجَلَّ»'},
+  {cat:'salaf', ref:'عبد الواحد بن زيد — تهذيب الأسرار (ص 163)', text:'«إِذَا كَانَ سَيِّدِي رَقِيبًا عَلَيَّ .. فَمَا أُبَالِي بِغَيْرِهِ»'},
+  {cat:'salaf', ref:'أبو عثمان المغربي — الإحياء ص 132', text:'«أَفْضَلُ مَا يُلْزِمُ الإِنْسَانُ نَفْسَهُ فِي هَذِهِ الطَّرِيقَةِ: المُحَاسَبَةُ وَالمُرَاقَبَةُ، وَسِيَاسَةُ عَمَلِهِ بِالعِلْمِ»'},
+  {cat:'salaf', ref:'الجنيد — الإحياء ص 134', text:'«إِنَّمَا يَتَحَقَّقُ بِالمُرَاقَبَةِ مَنْ يَخَافُ فَوْتَ حَظِّهِ مِنْ رَبِّهِ عَزَّ وَجَلَّ»'},
+  {cat:'salaf', ref:'المرتعش — الإحياء ص 135', text:'«المُرَاقَبَةُ مُرَاعَاةُ السِّرِّ بِمُلَاحَظَةِ الغَيْبِ مَعَ كُلِّ لَحْظَةٍ وَلَحْظَةٍ»'},
+  {cat:'salaf', ref:'سهل بن عبد الله — الإحياء ص 136', text:'«لَمْ يَتَزَيَّنِ القَلْبُ بِشَيْءٍ أَفْضَلَ وَلَا أَشْرَفَ مِنْ عِلْمِ العَبْدِ بِأَنَّ اللهَ شَاهِدُهُ حَيْثُ كَانَ»'},
+  {cat:'salaf', ref:'ذو النون المصري — الإحياء ص 136', text:'«بِمَ يَنَالُ العَبْدُ الجَنَّةَ؟ قَالَ: بِخَمْسٍ: اسْتِقَامَةٍ لَيْسَ فِيهَا رَوَغَانٌ، وَاجْتِهَادٍ لَيْسَ مَعَهُ سَهْوٌ، وَمُرَاقَبَةِ اللهِ فِي السِّرِّ وَالعَلَانِيَةِ، وَانْتِظَارِ المَوْتِ بِالتَّأَهُّبِ لَهُ، وَمُحَاسَبَةِ نَفْسِكَ قَبْلَ أَنْ تُحَاسَبَ»'},
+  {cat:'salaf', ref:'محمد بن علي الترمذي — الإحياء ص 135', text:'«اجْعَلْ مُرَاقَبَتَكَ لِمَنْ لَا تَغِيبُ عَنْ نَظَرِهِ إِلَيْكَ، وَاجْعَلْ شُكْرَكَ لِمَنْ لَا تَنْقَطِعُ نِعْمَتُهُ عَنْكَ، وَاجْعَلْ طَاعَتَكَ لِمَنْ لَا تَسْتَغْنِي عَنْهُ، وَاجْعَلْ خُضُوعَكَ لِمَنْ لَا تَخْرُجُ عَنْ مُلْكِهِ وَسُلْطَانِهِ»'},
+  {cat:'salaf', ref:'مالك بن دينار — الإحياء ص 135', text:'«إِنَّمَا يَسْكُنُ جَنَّاتِ عَدْنٍ الَّذِينَ إِذَا هَمُّوا بِالمَعَاصِي .. ذَكَرُوا عَظَمَتِي فَرَاقَبُونِي»'},
+  {cat:'salaf', ref:'سفيان الثوري — الإحياء ص 137', text:'«عَلَيْكَ بِالمُرَاقَبَةِ مِمَّنْ لَا تَخْفَى عَلَيْهِ خَافِيَةٌ، وَعَلَيْكَ بِالرَّجَاءِ مِمَّنْ يَمْلِكُ الوَفَاءَ، وَعَلَيْكَ بِالحَذَرِ مِمَّنْ يَمْلِكُ العُقُوبَةَ»'},
+  {cat:'story', ref:'الإحياء ص 137 — أبو داود الزهد 306، الطبراني الكبير 12/263', title:'الراعي وعمر', text:'سأل عمرُ راعيًا: بِعْنِي شاة. قال: إني مملوك! قال: قُلْ لسيدك: أكلها الذئب! قال: «فأين الله؟!» فبكى عمر: أعتقتُك في الدنيا، وأرجو أن تعتقك في الآخرة.'},
+  {cat:'story', ref:'الإحياء ص 134', title:'الجارية والكواكب', text:'حُكِيَ عَنْ بَعْضِ الأَحْدَاثِ أَنَّهُ رَاوَدَ جَارِيَةً عَنْ نَفْسِهَا، فَقَالَتْ لَهُ: أَلَا تَسْتَحِي؟ فَقَالَ: مِمَّنْ أَسْتَحِي وَمَا يَرَانَا إِلَّا الكَوَاكِبُ؟ قَالَتْ: وَأَيْنَ مُكَوْكِبُهَا؟!'},
+  {cat:'story', ref:'الإحياء ص 134', title:'الجنيد وغض البصر', text:'وَقَالَ رَجُلٌ لِلْجُنَيْدِ: بِمَ تَسْتَعِينُ عَلَى غَضِّ البَصَرِ؟ قَالَ: بِعِلْمِكَ أَنَّ نَاظِرَكَ أَسْبَقُ مِنْ نَظَرِكَ إِلَى المَنْظُورِ إِلَيْهِ.'},
+  {cat:'story', ref:'الإحياء ص 140', title:'عبد الواحد وعتبة الغلام', text:'وَقِيلَ لِعَبْدِ الوَاحِدِ بْنِ زَيْدٍ: هَلْ تَعْرِفُ فِي زَمَانِكَ رَجُلًا قَدِ اشْتَغَلَ بِحَالِهِ عَنِ الخَلْقِ؟ فَقَالَ: مَا أَعْرِفُ إِلَّا رَجُلًا وَاحِدًا سَيَدْخُلُ عَلَيْكُمُ السَّاعَةَ. فَمَا كَانَ إِلَّا سَرِيعًا حَتَّى دَخَلَ عُتْبَةُ الغُلَامُ، فَقَالَ لَهُ عَبْدُ الوَاحِدِ بْنُ زَيْدٍ: مِنْ أَيْنَ جِئْتَ يَا عُتْبَةُ؟ فَقَالَ: مِنْ مَوْضِعِ كَذَا، وَكَانَ طَرِيقُهُ عَلَى السُّوقِ، فَقَالَ: مَنْ لَقِيتَ فِي الطَّرِيقِ؟ فَقَالَ: مَا رَأَيْتُ أَحَدًا.'},
+  {cat:'story', ref:'الإحياء ص 140', title:'المرور بجماعة', text:'وَحُكِيَ عَنْ بَعْضِهِمْ أَنَّهُ قَالَ: مَرَرْتُ بِجَمَاعَةٍ يَتَرَامَوْنَ وَوَاحِدٌ جَالِسٌ بَعِيدًا مِنْهُمْ، فَتَقَدَّمْتُ إِلَيْهِ، فَأَرَدْتُ أَنْ أُكَلِّمَهُ، فَقَالَ: ذِكْرُ اللهِ تَعَالَى أَشْهَى. فَقُلْتُ: أَنْتَ وَحْدَكَ؟ فَقَالَ: مَعِي رَبِّي وَمَلَكَايَ. فَقُلْتُ: مَنْ سَبَقَ مِنْ هَؤُلَاءِ؟ فَقَالَ: مَنْ غَفَرَ اللهُ لَهُ. فَقُلْتُ: أَيْنَ الطَّرِيقُ؟ فَأَشَارَ نَحْوَ.'},
+  {cat:'story', ref:'الإحياء ص 134', title:'زليخا', text:'حُكِيَ أَنَّ زَلِيخَا لَمَّا خَلَتْ بِيُوسُفَ عَلَيْهِ السَّلَامُ .. قَامَتْ فَغَطَّتْ وَجْهَ صَنَمِهَا، فَقَالَ يُوسُفُ: مَا لَكِ؟ أَتَسْتَحِينَ مِنْ مُرَاقَبَةِ جِمَادٍ وَلَا أَسْتَحِي مِنْ مُرَاقَبَةِ المَلِكِ الجَبَّارِ؟!'},
+  {cat:'story', ref:'الإحياء ص 139 — الدرجة الأولى', title:'إذا مررت بي فحركني', text:'قَدْ يَغْفُلُ عَنِ الخَلْقِ .. حَتَّى لَا يَصِرُّ مَنْ يَحْضُرُ عِنْدَهُ وَهُوَ فَاتِحٌ عَيْنَيْهِ، وَلَا يَسْمَعُ مَا يُقَالُ لَهُ مَعَ أَنَّهُ لَا صَمَمَ بِهِ، وَقَدْ يَمُرُّ عَلَى ابْنِهِ مَثَلًا فَلَا يُكَلِّمُهُ. حَتَّى كَانَ بَعْضُهُمْ يَجْرِي عَلَيْهِ مِثْلُ ذَلِكَ، فَقَالَ لِمَنْ عَاتَبَهُ: إِذَا مَرَرْتَ بِي .. فَحَرِّكْنِي.'},
+  {cat:'story', ref:'الإحياء ص 140', title:'يحيى بن زكريا والمرأة', text:'وَرُوِيَ عَنْ يَحْيَى بْنِ زَكَرِيَّا عَلَيْهِمَا السَّلَامُ: أَنَّهُ مَرَّ بِامْرَأَةٍ فَدَفَعَهَا، فَسَقَطَتْ عَلَى وَجْهِهَا، فَقِيلَ لَهُ: لِمَ فَعَلْتَ هَذَا؟ فَقَالَ: مَا ظَنَنْتُهَا إِلَّا جِدَارًا.'},
+  {cat:'story', ref:'الإحياء ص 142 — تكملة قصة ابن خفيف', title:'ابن خفيف — التكملة', text:'قَالَ ابْنُ خَفِيفٍ: فَمَا أَجَابَانِي .. فَقُلْتُ: نَشَدْتُكُمَا بِاللهِ إِلَّا رَدَدْتُمَا عَلَيَّ السَّلَامَ! فَرَفَعَ الشَّابُّ رَأْسَهُ مِنْ مِرْقَعِهِ، فَنَظَرَ إِلَيَّ وَقَالَ: يَا بْنَ خَفِيفٍ؛ الدُّنْيَا قَلِيلٌ، وَمَا بَقِيَ مِنَ القَلِيلِ إِلَّا قَلِيلٌ، فَخُذْ مِنَ القَلِيلِ الكَثِيرَ. يَا بْنَ خَفِيفٍ؛ مَا أَقَلَّ .. شُغْلُكَ حَتَّى تَتَفَرَّغَ إِلَى لِقَائِنَا! فَأَخَذَ بِكَلِمَتَيَّ، فَنَظَرَ إِلَيَّ، ثُمَّ طَأْطَأَ رَأْسَهُ فِي المَكَانِ، فَبَقِيتُ عِنْدَهُمَا حَتَّى صَلَّيْنَا الظُّهْرَ وَالعَصْرَ، فَذَهَبَ جُوعِي وَعَطَشِي وَعَنَايَ، فَلَمَّا كَانَ وَقْتُ العَصْرِ .. قُلْتُ: عَظِّمْنِي! فَرَفَعَ رَأْسَهُ إِلَيَّ وَقَالَ: يَا بْنَ خَفِيفٍ؛ نَحْنُ أَصْحَابُ المَصَائِبِ — لَيْسَ لَنَا لِسَانُ العَظَمَةِ.'},
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'الشاب والطائر', text:'ناول الشيخُ أصحابَه طيورًا وسكاكين: اذبحوها في موضع لا يراكم فيه أحد. فرجع الشابُّ والطائر حيٌّ في يده! قال: «لم أجد موضعًا لا يراني فيه الله!»'},
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'الشبلي والنوري', text:'دخل الشبلي على النوري معتكفًا، فوجده ساكنًا. قال: من أين أخذت هذه المراقبة؟ قال: «من سُتورٍ كانت لنا؛ إذا أرادت الصيد .. رابطت رأس الجُحر!»'},
-  {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'ابن خفيف في صور', text:'قال الشاب لابن خفيف: «يا بن خفيف؛ الدنيا قليل، وما بقي من القليل إلا قليل، فخذ من القليل الكثير»!'},
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'توبة بن الصِّمَّة', text:'حسب عمره فوجده ستين سنة، فحسب أيامها فإذا هي واحدٌ وعشرون ألفًا وخمسمئة يوم! فصرخ: «يا ويلتي! ألقى الملك بأحد وعشرين ألف ذنب؟!» ثم خرَّ مغشيًا عليه ومات.'},
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'إبراهيم بن أدهم', text:'رآه رجل ينام الليل كله ثم يصلي الفجر بغير وضوء! سأله؟ قال: «كنتُ الليلَ كله جائلًا في رياض الجنة وفي أودية النار .. فهل في ذلك نوم؟!»'},
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'معاذة العدوية', text:'كانت إذا جاء النهار .. قالت: هذا يومي الذي أموت فيه! فما تطعم حتى تُمسي. وإذا جاء الليل .. قالت: هذه ليلتي التي أموت فيها! فتصلي حتى تصبح.'},
@@ -1024,14 +1288,19 @@ const libraryData = [
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'أويس القرني', text:'قيل له: ما لي أراك كأنك مريض؟ قال: «وما لأويسٍ ألا يكون مريضًا؟! يطعم المريضُ وأويسٌ غير طاعم، وينام المريضُ وأويسٌ غير نائم!»'},
   {cat:'story', ref:'نسبة الحكاية ومصدرها بحاجة إلى تحقق', title:'مالك بن دينار والحجاج', text:'سمعتُ الحجاج يخطب: «رحم الله امرأً حاسب نفسه قبل أن يُحاسب، رحم الله امرأً أخذ بعنان عمله فنظر ماذا يريد به!»'},
 
-  {cat:'poem', ref:'من الوافر', text:'أَشَدُّ الْغَمِّ عِنْدِي فِي سُرُورٍ .. تَيَقَّنَ عَنْهُ صَاحِبُهُ انْتِقَالَا'},
+  {cat:'poem', ref:'للمتنبي — ديوانه بشرح العكبري (٣/٢٢٤)؛ ساقه الغزالي في المحاسبة ص ١٢٣', text:'أَشَدُّ الْغَمِّ عِنْدِي فِي سُرُورٍ .. تَيَقَّنَ عَنْهُ صَاحِبُهُ انْتِقَالَا'},
   {cat:'poem', ref:'من الوافر', text:'إِذَا أَقْبَلَتْ فِي خُلَلٍ حِسَانِ .. يَسِيحُ إِلَى مَكَانٍ مِنْ مَكَانِ .. وَيَظْفَرُ فِي الْعِبَادَةِ بِالْأَمَانِي .. وَذِكْرُ اللهِ بِالْقَوْلِ وَاللِّسَانِ'},
   {cat:'poem', ref:'مناجاة شعبانة', text:'إلهي؛ ما أشوقَني إلى لقائك! وأعظمَ رجائي لجزائك! فقد جعلتُ الاعترافَ بالذنب وسائلي إليك.'},
   {cat:'poem', ref:'مناجاة معاذة', text:'يا ربِّ؛ لو كنتَ أهلًا أن تُعصى .. ما عصيتُك، ولكنك أهلٌ أن تُطاع .. فأطعناك بفضلك.'},
   {cat:'poem', ref:'مناجاة', text:'إلهي؛ قَدْ جَرَحْتُ عَلَى نَفْسِي فِي النَّظَرِ لَهَا، وَبَقِيَ لَهَا حُسْنُ نَظَرِكَ .. فَالْوَيْلُ لَهَا إِنْ لَمْ تَسْعَدْهَا.'},
   {cat:'poem', ref:'مناجاة', text:'إلهي؛ إِنَّكَ لَمْ تَزَلْ بِي بَرًّا أَيَّامَ حَيَاتِي، فَلَا تَقْطَعْ عَنِّي بِرَّكَ بَعْدَ مَمَاتِي.'},
   {cat:'poem', ref:'مناجاة', text:'إلهي؛ إِنْ كَانَتْ ذُنُوبِي قَدْ أَخَافَتْنِي .. فَإِنَّ مَحَبَّتِي لَكَ قَدْ أَجَارَتْنِي.'},
-  {cat:'poem', ref:'مناجاة', text:'إلهي؛ لَوْلَا مَا عَرَفْتُ مِنْ كَرَمِكَ .. مَا رَجَوْتُ ثَوَابَكَ، وَلَوْلَا مَا خِفْتُ عِقَابَكَ .. مَا قَارَفْتُ الذُّنُوبَ.'}
+  {cat:'poem', ref:'مناجاة', text:'إلهي؛ لَوْلَا مَا عَرَفْتُ مِنْ كَرَمِكَ .. مَا رَجَوْتُ ثَوَابَكَ، وَلَوْلَا مَا خِفْتُ عِقَابَكَ .. مَا قَارَفْتُ الذُّنُوبَ.'},
+  {cat:'salaf', ref:'المحاسبي — الإحياء ص 135', text:'سُئِلَ المُحَاسِبِيُّ عَنِ المُحَاسَبَةِ: مَا أَوَّلُهَا؟ قَالَ: أَوَّلُهَا عِلْمُ القَلْبِ بِقُرْبِ الرَّبِّ تَعَالَى.'},
+  {cat:'salaf', ref:'حميد الطويل لسليمان بن علي — الإحياء ص 137', text:'قَالَ حَمِيدٌ الطَّوِيلُ لِسُلَيْمَانَ بْنِ عَلِيٍّ: لَئِنْ كُنْتَ إِذَا عَصَيْتَ اللهَ خَالِيًا ظَنَنْتَ أَنَّهُ يَرَاكَ لَقَدِ اجْتَرَأْتَ عَلَى أَمْرٍ عَظِيمٍ، وَلَئِنْ كُنْتَ تَظُنُّ أَنَّهُ لَا يَرَاكَ لَقَدْ كَفَرْتَ.'},
+  {cat:'salaf', ref:'فرقد السبخي — الإحياء ص 137', text:'قَالَ فَرْقَدٌ السَّبَخِيُّ: إِنَّ المُنَافِقَ يَنْظُرُ، فَإِذَا لَمْ يَرَ أَحَدًا دَخَلَ مَدْخَلَ السُّوءِ، وَإِنَّمَا يُرَاقِبُ النَّاسَ وَلَا يُرَاقِبُ اللهَ تَعَالَى.'},
+  {cat:'salaf', ref:'الحسن البصري — إتحاف السادة المتقين (10/103) — الإحياء ص 145', text:'قَالَ الحَسَنُ البَصْرِيُّ: رَحِمَ اللهُ عَبْدًا وَقَفَ عِنْدَ هَمِّهِ، فَإِنْ كَانَ لِلَّهِ .. مَضَى، وَإِنْ كَانَ لِغَيْرِهِ .. تَأَخَّرَ.'},
+  {cat:'poem', ref:'من الطويل — نسبة متازعة، روضة العقلاء (1/123)', text:'إِذَا مَا خَلَوْتَ الدَّهْرَ يَوْمًا فَلَا تَقُلْ .. خَلَوْتُ وَلَكِنْ قُلْ عَلَيَّ رَقِيبُ .. وَلَا تَحْسَبَنَّ اللهَ يَغْفُلُ سَاعَةً .. وَلَا أَنَّ مَا تُخْفِي عَلَيْهِ يَغِيبُ .. أَلَمْ تَرَ أَنَّ اللَّيْلَ يَأْتِي بِمَا يَرَى .. وَأَنَّ غَدًا لِلنَّاظِرِينَ قَرِيبُ'}
 ];
 
 let currentCategory = 'all', currentSearch = '';
@@ -1081,7 +1350,20 @@ function filterLibrary() {
 }
 
 /* ═══════════════════════ اقتباس اليوم ═══════════════════════ */
-const dailyQuotes = libraryData.filter(p => ['quran','salaf','hadith'].includes(p.cat)).map(p => p.text);
+const APPROVED_DAILY = [
+  { id: 'quran:59:18', text: '﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَلْتَنظُرْ نَفْسٌ مَّا قَدَّمَتْ لِغَدٍ ۖ وَاتَّقُوا اللَّهَ ۚ إِنَّ اللَّهَ خَبِيرٌ بِمَا تَعْمَلُونَ﴾' },
+  { id: 'quran:21:47', text: '﴿وَنَضَعُ الْمَوَازِينَ الْقِسْطَ لِيَوْمِ الْقِيَامَةِ فَلَا تُظْلَمُ نَفْسٌ شَيْئًا ۖ وَإِن كَانَ مِثْقَالَ حَبَّةٍ مِّنْ خَرْدَلٍ أَتَيْنَا بِهَا ۗ وَكَفَىٰ بِنَا حَاسِبِينَ﴾' },
+  { id: 'quran:18:49', text: '﴿وَوُضِعَ الْكِتَابُ فَتَرَى الْمُجْرِمِينَ مُشْفِقِينَ مِمَّا فِيهِ وَيَقُولُونَ يَا وَيْلَتَنَا مَالِ هَٰذَا الْكِتَابِ لَا يُغَادِرُ صَغِيرَةً وَلَا كَبِيرَةً إِلَّا أَحْصَاهَا﴾' },
+  { id: 'quran:58:6', text: '﴿يَوْمَ يَبْعَثُهُمُ اللَّهُ جَمِيعًا فَيُنَبِّئُهُم بِمَا عَمِلُوا ۚ أَحْصَاهُ اللَّهُ وَنَسُوهُ ۚ وَاللَّهُ عَلَىٰ كُلِّ شَيْءٍ شَهِيدٌ﴾' },
+  { id: 'quran:99:7-8', text: '﴿فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ ۞ وَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا يَرَهُ﴾' },
+  { id: 'quran:50:16', text: '﴿وَلَقَدْ خَلَقْنَا الْإِنسَانَ وَنَعْلَمُ مَا تُوَسْوِسُ بِهِ نَفْسُهُ ۖ وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ﴾' },
+  { id: 'quran:2:235', text: '﴿وَاعْلَمُوا أَنَّ اللَّهَ يَعْلَمُ مَا فِي أَنفُسِكُمْ فَاحْذَرُوهُ ۚ وَاعْلَمُوا أَنَّ اللَّهَ غَفُورٌ حَلِيمٌ﴾' },
+  { id: 'quran:3:30', text: '﴿يَوْمَ تَجِدُ كُلُّ نَفْسٍ مَّا عَمِلَتْ مِنْ خَيْرٍ مُّحْضَرًا وَمَا عَمِلَتْ مِن سُوءٍ تَوَدُّ لَوْ أَنَّ بَيْنَهَا وَبَيْنَهُ أَمَدًا بَعِيدًا﴾' },
+  { id: 'hadith:bukhari:1968', text: '«إِنَّ لِرَبِّكَ عَلَيْكَ حَقًّا، وَلِنَفْسِكَ عَلَيْكَ حَقًّا، وَلِأَهْلِكَ عَلَيْكَ حَقًّا، فَأَعْطِ كُلَّ ذِي حَقٍّ حَقَّهُ»' },
+  { id: 'hadith:bukhari:6412', text: '«نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالْفَرَاغُ»' },
+  { id: 'hadith:muslim:118', text: '«بَادِرُوا بِالْأَعْمَالِ فِتَنًا كَقِطَعِ اللَّيْلِ الْمُظْلِمِ، يُصْبِحُ الرَّجُلُ مُؤْمِنًا وَيُمْسِي كَافِرًا، أَوْ يُمْسِي مُؤْمِنًا وَيُصْبِحُ كَافِرًا، يَبِيعُ دِينَهُ بِعَرَضٍ مِنَ الدُّنْيَا»' }
+];
+const dailyQuotes = APPROVED_DAILY.map(p => p.text);
 let dailyQuoteIndex = null;
 function rotateQuote(advance = false) {
   const el = document.getElementById('daily-quote');
@@ -1106,20 +1388,20 @@ function renderHoursGrid() {
       const s = appData.hours[i];
       const cls = s === 'light' ? 'bg-emerald-500 text-white border-emerald-600'
                 : s === 'dark'  ? 'bg-rose-500 text-white border-rose-600'
-                : s === 'empty' ? 'bg-amber-400 text-white border-amber-500'
+                : s === 'empty' ? 'bg-amber-400 text-amber-950 border-amber-500'
                 : 'bg-slate-100 text-slate-600 border-slate-300';
-      const stateAr = s === 'light' ? 'طاعة'
-                    : s === 'dark'  ? 'معصية'
-                    : s === 'empty' ? 'غفلة'
-                    : 'غير مصنّفة';
-      return `<button onclick="cycleHour(${i})" class="hour-cell ${cls} border rounded-lg py-2 text-[12px] font-bold" aria-label="الساعة ${h} — ${stateAr}" aria-pressed="${s ? 'true' : 'false'}">${h}</button>`;
+      const stateLabel = s === 'light' ? 'طاعة'
+                      : s === 'dark'  ? 'معصية'
+                      : s === 'empty' ? 'غفلة'
+                      : 'غير مصنفة';
+      return `<button onclick="cycleHour(${i})" class="hour-cell ${cls} border rounded-lg py-2 text-[12px] font-bold" aria-label="الساعة ${h} — ${stateLabel}">${h}</button>`;
     }).join('');
   }
 }
 function cycleHour(i) {
   if (!ensureCurrentDay()) return;
   if (!Number.isInteger(i) || i < 0 || i >= 24) return;
-  const before = cloneAppData();
+  const before = snapshotForRollback(['hours','lights','darks','empties','currentStreak','longestStreak','lastActivityDate','lastActiveDate']);
   const cur = appData.hours[i];
   appData.hours[i] = cur === null ? 'light'
                    : cur === 'light' ? 'dark'
@@ -1127,7 +1409,7 @@ function cycleHour(i) {
                    : null;
   recomputeFromHours();
   if (appData.hours[i]) recordActivity();
-  if (!saveOrRollback(before)) return;
+  if (!saveOrRestoreKeys(before)) return;
   updateDisplay();
 }
 function recomputeFromHours() {
@@ -1142,6 +1424,8 @@ function updateDisplay() {
   document.getElementById('count-dark').innerText  = appData.darks;
   document.getElementById('count-empty').innerText = appData.empties;
   document.getElementById('streak-count').innerText = appData.currentStreak;
+  const lsEl = document.getElementById('longest-streak');
+  if (lsEl) lsEl.innerText = appData.longestStreak || 0;
   const dateEl = document.getElementById('date-badge');
   if (dateEl) dateEl.innerText = formatArabicDate(currentDayKey());
   const filled = appData.hours.filter(Boolean).length;
@@ -1153,8 +1437,8 @@ function updateDisplay() {
     scoreEl.innerText = '—';
     labelEl.innerText = 'لم تُصنّف أي ساعة بعد';
   } else {
-    scoreEl.innerText = Math.round((appData.lights / filled) * 100) + '%';
-    labelEl.innerText = `من أصل ${filled} ساعة مصنّفة`;
+    scoreEl.innerText = appData.lights + ' / ' + filled;
+    labelEl.innerText = `طاعة من أصل ${filled} مصنَّفة · ${24 - filled} غير مصنَّفة`;
   }
   const customTaskCount = Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length;
   const taskTotal = MUJAHADAH_KEYS.length + customTaskCount;
@@ -1167,6 +1451,7 @@ function updateDisplay() {
   renderHistoryAndChart();
   renderCorrectionDisplay();
   renderVigilanceLog();
+  if (typeof restoreStanceButtons === 'function') restoreStanceButtons();
 }
 function renderCorrectionDisplay() {
   const el = document.getElementById('correction-saved');
@@ -1219,24 +1504,29 @@ function renderCustomTasks() {
     wrapper.append(label, delBtn);
     container.appendChild(wrapper);
   });
+  attachAutoSave();
 }
 
 function removeCustomTask(key) {
   if (!ensureCurrentDay()) return;
   if (!isCustomTaskKey(key)) return;
-  showConfirmModal('🗑️ حذف المهمة', 'هل تريد حذف هذه المهمة نهائيًا؟', function() {
-    const before = cloneAppData();
-    delete appData.mujahadah[key];
-    if (!saveOrRollback(before)) return;
-    renderCustomTasks();
-    updateDisplay();
-    showToast('🗑️ حُذفت المهمة.');
-  });
+  if (!confirm('حذف هذه المهمة نهائيًا؟')) return;
+  const before = cloneAppData();
+  delete appData.mujahadah[key];
+  if (!saveOrRollback(before)) return;
+  renderCustomTasks();
+  updateDisplay();
+  showToast('🗑️ حُذفت المهمة.');
 }
 
 /* ═══════════════════════ استرجاع الحقول ═══════════════════════ */
 function restoreFormState() {
-  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+  // polish-03: storage collision guard
+  const activeEl = document.activeElement;
+  const setVal = (id, v) => {
+    const el = document.getElementById(id);
+    if (el && !(activeEl && activeEl.id === id)) el.value = v ?? '';
+  };
   const setChk = (sel, fn) => document.querySelectorAll(sel).forEach(fn);
 
   renderCustomTasks();
@@ -1249,6 +1539,9 @@ function restoreFormState() {
   setVal('diwan-how',  appData.muhasabah?.how);
   setVal('diwan-whom', appData.muhasabah?.whom);
 
+  if (typeof restoreStanceButtons === 'function') restoreStanceButtons();
+  if (typeof updateStanceHint === 'function') updateStanceHint(appData.muhasabah?.stance || null);
+
   setVal('muatabah-note',     appData.muatabah?.note);
   setVal('correction-action', appData.muatabah?.correctionAction);
 
@@ -1258,18 +1551,75 @@ function restoreFormState() {
   const m = appData.mujahadah || {};
   setChk('.mujahadah-check', cb => cb.checked = !!m[cb.dataset.task]);
 
-  setVal('birth-year', appData.birthYear ?? '');
+  if (appData.birthYear) setVal('birth-year', appData.birthYear);
   setVal('notif-morning', appData.notifications?.morning || '05:30');
   setVal('notif-evening', appData.notifications?.evening || '21:00');
 
   const st = document.getElementById('notif-status');
   if (st) {
-    st.innerText = appData.notifications?.enabled
+    const canNotify = ('Notification' in window) && Notification.permission === 'granted';
+    st.innerText = (appData.notifications?.enabled && canNotify)
       ? `✅ مفعّل (صباح ${appData.notifications.morning}، مساء ${appData.notifications.evening})`
-      : '';
+      : (appData.notifications?.enabled ? '⚠️ الإذن مسحوب — أعد تفعيله من المتصفح' : '');
   }
+  attachAutoSave();
 }
 
+/* ═══════════════════════ h7-11: موقف المراجعة ═══════════════════════ */
+function setStance(stance) {
+  const VALID = ['hope', 'repentance', 'remedy'];
+  if (!VALID.includes(stance)) return;
+  if (typeof ensureCurrentDay === 'function' && !ensureCurrentDay()) return;
+  const before = cloneAppData();
+  appData.muhasabah = {
+    ...(appData.muhasabah || {}),
+    why:  ((document.getElementById('diwan-why')  || {}).value || '').trim(),
+    how:  ((document.getElementById('diwan-how')  || {}).value || '').trim(),
+    whom: ((document.getElementById('diwan-whom') || {}).value || '').trim(),
+    stance: stance
+  };
+  if (typeof recordActivity === 'function') recordActivity();
+  if (!saveOrRollback(before)) return;
+  restoreStanceButtons();
+  updateStanceHint(stance);
+  showToast('✅ تم تسجيل الموقف.');
+}
+
+function restoreStanceButtons() {
+  const currentStance = appData.muhasabah?.stance || null;
+  document.querySelectorAll('.stance-btn').forEach(btn => {
+    btn.classList.remove('ring-2', 'ring-emerald-500', 'ring-amber-500', 'ring-rose-500', 'font-bold', 'bg-emerald-50', 'bg-amber-50', 'bg-rose-50');
+    btn.classList.add('border', 'border-slate-300', 'bg-white');
+    if (btn.dataset.stance === currentStance) {
+      btn.classList.remove('border-slate-300', 'bg-white');
+      btn.classList.add('ring-2', 'font-bold');
+      const map = {
+        hope: ['ring-emerald-500', 'bg-emerald-50'],
+        repentance: ['ring-amber-500', 'bg-amber-50'],
+        remedy: ['ring-rose-500', 'bg-rose-50']
+      };
+      (map[btn.dataset.stance] || []).forEach(c => btn.classList.add(c));
+    }
+  });
+}
+
+function updateStanceHint(stance) {
+  const hint = document.getElementById('stance-hint');
+  if (!hint) return;
+  if (stance === 'remedy') {
+    hint.innerText = '💡 التدارك قد يكون: تصحيح خطأ، أو اعتذار، أو صدقة، أو صبر عن معاودة الذنب. اكتب خطتك في المقام الرابع إن أردت — أو اتركها للتأمل.';
+    hint.classList.remove('hidden');
+  } else if (stance === 'repentance') {
+    hint.innerText = '🤲 استغفر الله، وجدّد نيتك للتوبة.';
+    hint.classList.remove('hidden');
+  } else if (stance === 'hope') {
+    hint.innerText = '🌿 نسأل الله القبول، ونسأله ألا يحرمنا أجر ما عملنا.';
+    hint.classList.remove('hidden');
+  } else {
+    hint.classList.add('hidden');
+    hint.innerText = '';
+  }
+}
 /* ═══════════════════════ دوال الحفظ ═══════════════════════ */
 function saveMusharatah() {
   if (!ensureCurrentDay()) return;
@@ -1301,6 +1651,7 @@ function saveMuhasabah() {
   if (!ensureCurrentDay()) return;
   const before = cloneAppData();
   appData.muhasabah = {
+    ...(appData.muhasabah || {}),
     why: document.getElementById('diwan-why').value.trim(),
     how: document.getElementById('diwan-how').value.trim(),
     whom: document.getElementById('diwan-whom').value.trim()
@@ -1313,7 +1664,7 @@ function saveMuhasabah() {
 function saveCorrection() {
   if (!ensureCurrentDay()) return;
   const action = document.getElementById('correction-action').value.trim();
-  if (!action) return showToast('⚠️ اكتب خطة المعاقبة.');
+  if (!action) return showToast('⚠️ اكتب خطة التدارك.');
   const before = cloneAppData();
   appData.muatabah = { ...(appData.muatabah || {}), correctionAction: action, correctionDate: currentDayKey() };
   recordActivity();
@@ -1374,6 +1725,37 @@ function addCustomTask() {
 }
 
 /* ═══════════════════════ حساب العمر ═══════════════════════ */
+/* ═══ حاسبة هجرية — أم القرى ═══ */
+function hijriParts(date) {
+  const fmt = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { year: 'numeric', month: 'numeric', day: 'numeric' });
+  const toLatinInt = function(s) {
+    if (!s) return 0;
+    const normalized = String(s).replace(/[٠-٩]/g, function(d) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)); });
+    const n = parseInt(normalized, 10);
+    return Number.isFinite(n) ? n : 0;
+  };
+  const p = fmt.formatToParts(date);
+  const year = toLatinInt((p.find(function(x){ return x.type === 'year'; }) || {}).value);
+  if (!year) return { year: 0, month: 0, day: 0 };
+  return {
+    year: year,
+    month: toLatinInt((p.find(function(x){ return x.type === 'month'; }) || {}).value),
+    day: toLatinInt((p.find(function(x){ return x.type === 'day'; }) || {}).value)
+  };
+}
+
+function hijriAge(birthYear) {
+  try {
+    const birthDate = new Date(birthYear, 0, 1);
+    const now = new Date();
+    const n = hijriParts(now);
+    const b = hijriParts(birthDate);
+    if (!n.year || !b.year) return null;
+    let age = n.year - b.year;
+    if (n.month < b.month || (n.month === b.month && n.day < b.day)) age--;
+    return { hijriAge: age, hijriNow: n.year };
+  } catch (e) { return null; }
+}
 function calculateLife(showMsg) {
   const by = Number.parseInt(document.getElementById('birth-year').value, 10);
   if (!Number.isInteger(by) || by < 1900 || by > new Date().getFullYear()) {
@@ -1383,185 +1765,22 @@ function calculateLife(showMsg) {
   const before = cloneAppData();
   appData.birthYear = by;
   if (!saveOrRollback(before)) return;
+  const start = new Date(by, 0, 1);
   const now = new Date();
-  // احسب بين أيام تقويمية بتوقيت UTC حتى لا يسبب التوقيت الصيفي فرق يوم.
-  const start = Date.UTC(by, 0, 1);
-  const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-  const days = Math.max(0, Math.floor((todayUTC - start) / 86400000));
+  const days = Math.max(0, Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 86400000));
   const hours = days * 24;
   const breaths = hours * 60 * 12;
   document.getElementById('days-lived').innerText    = '≈ ' + days.toLocaleString('ar-EG');
   document.getElementById('hours-lived').innerText   = '≈ ' + hours.toLocaleString('ar-EG');
-  document.getElementById('breaths-lived').innerText = '≈ ' + breaths.toLocaleString('ar-EG');
+  const _h = hijriAge(by);
+  const _hl = _h ? ('<div style="font-size:11px;color:#6b7280;margin-top:4px">' + _h.hijriAge.toLocaleString('ar-EG') + ' سنة هجرية · ' + _h.hijriNow.toLocaleString('ar-EG') + 'هـ</div>') : '';
+  document.getElementById('breaths-lived').innerHTML = '≈ ' + breaths.toLocaleString('ar-EG') + _hl;
   const archivedWasted = appData.history.reduce((s,h) => s + (h.empties||0), 0);
   document.getElementById('hours-wasted').innerText = (archivedWasted + (appData.empties||0)).toLocaleString('ar-EG');
   if (showMsg) showToast("⏳ تقدير تقريبي.");
 }
 
 /* ═══════════════════════ السجل والرسم ═══════════════════════ */
-/* ═══════════════════════ التحليل الأسبوعي الذكي ═══════════════════════ */
-const ARABIC_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-const PERIOD_NAMES = ['السحري (00–05)', 'الصباحي (06–11)', 'الظهري (12–17)', 'المسائي (18–23)'];
-
-function analyzeWeek() {
-  const todayDate = new Date();
-  const byDate = new Map((appData.history || []).map(item => [item.date, item]));
-
-  const days = [];
-  for (let offset = 6; offset >= 0; offset--) {
-    const d = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() - offset);
-    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    if (key === currentDayKey()) {
-      days.push({
-        date: key,
-        dayOfWeek: d.getDay(),
-        lights: appData.lights,
-        darks: appData.darks,
-        empties: appData.empties,
-        hoursArray: [...appData.hours],
-        mujahadahCount: Object.values(appData.mujahadah || {}).filter(Boolean).length,
-        mujahadahTotal: MUJAHADAH_KEYS.length + Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length
-      });
-    } else {
-      const a = byDate.get(key);
-      days.push({
-        date: key,
-        dayOfWeek: d.getDay(),
-        lights: a?.lights || 0,
-        darks: a?.darks || 0,
-        empties: a?.empties || 0,
-        hoursArray: a?.hoursArray || new Array(24).fill(null),
-        mujahadahCount: a?.mujahadahCount || 0,
-        mujahadahTotal: a?.mujahadahTotal || MUJAHADAH_KEYS.length
-      });
-    }
-  }
-
-  const active = days.filter(d => (d.lights + d.darks + d.empties) > 0);
-
-  if (active.length === 0) {
-    return { status: 'empty', message: 'لا توجد بيانات كافية بعد. سجّل ساعاتك اليومية ليظهر التحليل.' };
-  }
-  if (active.length < 3) {
-    return { status: 'early', message: 'سجّلت ' + active.length + ' من 7 أيام. تابع التسجيل — التحليل يحتاج 3 أيام على الأقل.' };
-  }
-
-  /* أفضل وأسوأ يوم */
-  const dayStats = {};
-  active.forEach(d => {
-    const total = d.lights + d.darks + d.empties;
-    const pct = total > 0 ? (d.lights / total) * 100 : 0;
-    if (!dayStats[d.dayOfWeek]) dayStats[d.dayOfWeek] = [];
-    dayStats[d.dayOfWeek].push(pct);
-  });
-  const dayAvg = Object.entries(dayStats).map(([dow, pcts]) => ({
-    dow: Number(dow),
-    avg: pcts.reduce((a,b) => a+b, 0) / pcts.length
-  })).sort((a, b) => b.avg - a.avg);
-
-  const bestDay = dayAvg[0];
-  const worstDay = dayAvg.length > 1 ? dayAvg[dayAvg.length - 1] : null;
-
-  /* تحليل الفترات */
-  const pEmpty = [0,0,0,0], pLight = [0,0,0,0];
-  active.forEach(d => {
-    (d.hoursArray || []).forEach((h, i) => {
-      if (!h) return;
-      const p = Math.floor(i / 6);
-      if (h === 'empty') pEmpty[p]++;
-      if (h === 'light') pLight[p]++;
-    });
-  });
-  const maxEmpty = Math.max(...pEmpty);
-  const maxLight = Math.max(...pLight);
-  const peakEmptyIdx = maxEmpty > 0 ? pEmpty.indexOf(maxEmpty) : -1;
-  const peakLightIdx = maxLight > 0 ? pLight.indexOf(maxLight) : -1;
-
-  /* متوسط المجاهدة */
-  const mujAvg = active.reduce((s, d) => s + (d.mujahadahCount || 0), 0) / active.length;
-  const mujTotal = active[0].mujahadahTotal || MUJAHADAH_KEYS.length;
-
-  /* الاتجاه */
-  let trendText = '';
-  if (active.length >= 5) {
-    const sorted = [...active].sort((a, b) => a.date.localeCompare(b.date));
-    const half = Math.floor(sorted.length / 2);
-    const firstAvg = sorted.slice(0, half).reduce((s, d) => {
-      const t = d.lights + d.darks + d.empties;
-      return s + (t > 0 ? d.lights / t : 0);
-    }, 0) / half;
-    const secondAvg = sorted.slice(half).reduce((s, d) => {
-      const t = d.lights + d.darks + d.empties;
-      return s + (t > 0 ? d.lights / t : 0);
-    }, 0) / (sorted.length - half);
-    const diff = (secondAvg - firstAvg) * 100;
-    if (diff > 8) trendText = '📈 تحسّن: ارتفعت نسبة الطاعة بنحو ' + Math.round(diff) + ' نقطة مئوية في النصف الثاني.';
-    else if (diff < -8) trendText = '📉 تراجع: انخفضت نسبة الطاعة بنحو ' + Math.round(Math.abs(diff)) + ' نقطة مئوية في النصف الثاني.';
-    else trendText = '➡️ الأداء مستقر طوال الأسبوع.';
-  }
-
-  return {
-    status: 'ok',
-    activeCount: active.length,
-    bestDay: { name: ARABIC_DAYS[bestDay.dow], pct: Math.round(bestDay.avg) },
-    worstDay: worstDay ? { name: ARABIC_DAYS[worstDay.dow], pct: Math.round(worstDay.avg) } : null,
-    peakEmpty: peakEmptyIdx >= 0 ? PERIOD_NAMES[peakEmptyIdx] : null,
-    peakLight: peakLightIdx >= 0 ? PERIOD_NAMES[peakLightIdx] : null,
-    mujAvg: Math.round(mujAvg * 10) / 10,
-    mujTotal: mujTotal,
-    trendText: trendText
-  };
-}
-
-function renderWeeklyInsights() {
-  const c = document.getElementById('weeklyInsights');
-  if (!c) return;
-  const r = analyzeWeek();
-
-  if (r.status !== 'ok') {
-    c.innerHTML = '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center text-xs text-slate-500 leading-relaxed">' + r.message + '</div>';
-    return;
-  }
-
-  let html = '';
-
-  if (r.bestDay) {
-    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
-          + '<span class="text-xs text-slate-600">🏆 أفضل يوم</span>'
-          + '<span class="text-xs font-bold text-emerald-700">' + r.bestDay.name + ' — ' + r.bestDay.pct + '%</span>'
-          + '</div>';
-  }
-  if (r.worstDay && r.worstDay.name !== r.bestDay.name) {
-    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
-          + '<span class="text-xs text-slate-600">⚠️ أقل يوم</span>'
-          + '<span class="text-xs font-bold text-rose-700">' + r.worstDay.name + ' — ' + r.worstDay.pct + '%</span>'
-          + '</div>';
-  }
-  if (r.peakLight) {
-    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
-          + '<span class="text-xs text-slate-600">✨ أكثر الطاعة في</span>'
-          + '<span class="text-xs font-bold text-emerald-700">' + r.peakLight + '</span>'
-          + '</div>';
-  }
-  if (r.peakEmpty) {
-    html += '<div class="flex justify-between items-center py-1.5 border-b border-slate-100">'
-          + '<span class="text-xs text-slate-600">🌫️ تتكدّس الغفلة في</span>'
-          + '<span class="text-xs font-bold text-amber-700">' + r.peakEmpty + '</span>'
-          + '</div>';
-  }
-  html += '<div class="flex justify-between items-center py-1.5">'
-        + '<span class="text-xs text-slate-600">💪 متوسط المجاهدة</span>'
-        + '<span class="text-xs font-bold text-islamic-700">' + r.mujAvg + ' / ' + r.mujTotal + '</span>'
-        + '</div>';
-
-  if (r.trendText) {
-    html += '<div class="mt-2 pt-2 border-t border-slate-200 text-[11px] text-slate-700 leading-relaxed text-center">'
-          + r.trendText + '</div>';
-  }
-
-  c.innerHTML = html;
-}
-
 function renderHistoryAndChart() {
   const c = document.getElementById('history-container');
   const chart = document.getElementById('analytics-chart');
@@ -1576,20 +1795,17 @@ function renderHistoryAndChart() {
     const archivedItem = byDate.get(key);
     items.push(key === currentDayKey()
       ? { date:key, lights:appData.lights, darks:appData.darks, empties:appData.empties, isToday:true }
-      : (archivedItem
-          ? { ...archivedItem, hasRecord:true }
-          : { date:key, lights:0, darks:0, empties:0, hasRecord:false }));
+      : (archivedItem || { date:key, lights:0, darks:0, empties:0 }));
   }
 
-renderWeeklyInsights();
-if (chart) {
+  if (chart) {
     const totals = items.map(x => (x.lights||0) + (x.darks||0) + (x.empties||0));
     const maxT = Math.max(1, ...totals);
     chart.innerHTML = items.map(item => {
       const total = (item.lights||0) + (item.darks||0) + (item.empties||0);
       const h = total === 0 ? 3 : Math.max(8, Math.round((total / maxT) * 100));
       const ring = item.isToday ? 'ring-2 ring-islamic-gold' : '';
-      const bg = item.isToday ? 'bg-islamic-gold' : item.hasRecord ? 'bg-emerald-500' : 'bg-slate-200';
+      const bg = item.isToday ? 'bg-islamic-gold' : 'bg-emerald-500';
       // ✅ إصلاح تجميلي (ب) : تسمية رقمية لاتينية بدل الهجرية المقتطعة
       const label = item.isToday ? 'اليوم' : formatNumericShortDate(item.date);
       return `<div class="flex-1 flex flex-col items-center gap-1 h-full justify-end group relative">
@@ -1626,16 +1842,12 @@ if (chart) {
 /* ═══════════════════════ الإشعارات ═══════════════════════ */
 const NOTIF_ICON = './icon-192.png';
 
-function withinWindow(hhmm, start, hours) {
-  const [cH, cM] = hhmm.split(':').map(Number);
-  const [sH, sM] = start.split(':').map(Number);
-  const cur = cH * 60 + cM;
-  const s = sH * 60 + sM;
-  const duration = Math.max(0, Math.min(24 * 60, hours * 60));
-  if (duration === 0) return false;
-  if (duration === 24 * 60) return true;
-  const end = s + duration;
-  return end < 1440 ? (cur >= s && cur < end) : (cur >= s || cur < end - 1440);
+// pastTimeWithin: يُطلق التذكير إن كان الوقت قد مضى، وبسقف زمني يمنع الإزعاج
+function pastTimeWithin(nowHHMM, target, maxHours) {
+  const [ch, cm] = nowHHMM.split(':').map(Number);
+  const [th, tm] = target.split(':').map(Number);
+  const diff = (ch * 60 + cm) - (th * 60 + tm);
+  return diff >= 0 && diff <= maxHours * 60;
 }
 async function getSWReg() {
   if (!('serviceWorker' in navigator)) return null;
@@ -1651,10 +1863,11 @@ async function showAppNotification(title, body, tag) {
       const { LocalNotifications } = Capacitor.Plugins;
       await LocalNotifications.schedule({
         notifications: [{
-          id: (Math.floor(Date.now() / 1000) % 2000000000) + 10000,
+          id: Math.floor(Date.now() / 1000) % 2147483647,
           title: title,
           body: body,
           schedule: { at: new Date(Date.now() + 200) },
+          // smallIcon removed: using launcher icon
           iconColor: '#0d261e'
         }]
       });
@@ -1682,40 +1895,54 @@ async function showAppNotification(title, body, tag) {
   } catch (_) {}
   return false;
 }
+async function cancelScheduledNotifications() {
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
+  try {
+    const { LocalNotifications } = Capacitor.Plugins;
+    await LocalNotifications.cancel({ notifications: [{ id: 1001 }, { id: 1002 }] });
+  } catch (err) {
+    console.warn('فشل إلغاء الإشعارات:', err);
+  }
+}
 async function saveNotificationSettings() {
   const m = document.getElementById('notif-morning').value;
   const e = document.getElementById('notif-evening').value;
   if (!isValidTime(m) || !isValidTime(e)) return showToast('⚠️ أدخل وقتًا صحيحًا بين 00:00 و23:59.');
   const st = document.getElementById('notif-status');
 
-  // في Capacitor: الإشعارات الأصلية أولًا — لا نمرّ بفحص Notification
-  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-    const before = cloneAppData();
-    appData.notifications = {
-      morning: m,
-      evening: e,
-      enabled: true,
-      lastFired: appData.notifications?.lastFired || {}
-    };
-    if (!saveOrRollback(before)) return;
-    const scheduled = await scheduleDailyNotifications();
-    if (!scheduled) {
-      appData.notifications.enabled = false;
-      save();
-      if (st) st.innerText = '⚠️ تعذّرت جدولة الإشعارات الأصلية؛ تحقق من الإذن وإعدادات التطبيق.';
-      showToast('⚠️ لم تتأكد جدولة التذكيرات على هذا الجهاز.');
+  // ① Capacitor (APK): تجاوز فحص Notification — الإذن الأصلي يُطلب مباشرة
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+    try {
+      const { LocalNotifications } = Capacitor.Plugins;
+      const perm = await LocalNotifications.requestPermissions();
+      if (!perm || perm.display !== 'granted') {
+        const beforeCap = cloneAppData();
+        appData.notifications = { ...(appData.notifications || {}), morning:m, evening:e, enabled:false };
+        if (!saveOrRollback(beforeCap)) return;
+        await cancelScheduledNotifications();
+        if (st) st.innerText = '⚠️ الإذن الأصلي مرفوض — التذكير داخل التطبيق فقط.';
+        return;
+      }
+    } catch (err) {
+      console.warn('تعذّر طلب إذن الإشعارات الأصلية:', err);
+      if (st) st.innerText = '⚠️ تعذّر طلب الإذن الأصلي.';
       return;
     }
-    if (st) st.innerText = `✅ مفعّل (صباح ${m}، مساء ${e})`;
-    showToast('🔔 تم التفعيل.');
+    const beforeCapOK = cloneAppData();
+    appData.notifications = { morning:m, evening:e, enabled:true, lastFired:{} };
+    if (!saveOrRollback(beforeCapOK)) return;
+    await scheduleDailyNotifications();
+    if (st) st.innerText = `✅ مفعّل — إشعارات أصلية (صباح ${m}، مساء ${e})`;
+    showToast('🔔 تم تفعيل الإشعارات الأصلية.');
     return;
   }
 
-  // في المتصفح العادي: المسار الاعتيادي
+  // ② مسار المتصفح (PWA/عادي) — كما هو
   if (!('Notification' in window)) {
     const before = cloneAppData();
-    appData.notifications = { ...(appData.notifications || {}), morning: m, evening: e, enabled: false };
+    appData.notifications = { ...(appData.notifications || {}), morning:m, evening:e, enabled:false };
     if (!saveOrRollback(before)) return;
+    await cancelScheduledNotifications();
     if (st) st.innerText = '⚠️ المتصفح لا يدعم الإشعارات.';
     return;
   }
@@ -1728,34 +1955,30 @@ async function saveNotificationSettings() {
   }
   if (Notification.permission !== 'granted') {
     const before = cloneAppData();
-    appData.notifications = { ...(appData.notifications || {}), morning: m, evening: e, enabled: false };
+    appData.notifications = { ...(appData.notifications || {}), morning:m, evening:e, enabled:false };
     if (!saveOrRollback(before)) return;
-    if (st) st.innerText = '⚠️ الإذن مرفوض؛ لن تصلك إشعارات حتى تسمح بها من إعدادات المتصفح.';
+    await cancelScheduledNotifications();
+    if (st) st.innerText = '⚠️ الإذن مرفوض — التذكير داخل التطبيق فقط.';
     return;
   }
   const before = cloneAppData();
-  appData.notifications = { morning: m, evening: e, enabled: true, lastFired: appData.notifications?.lastFired || {} };
+  appData.notifications = { morning:m, evening:e, enabled:true, lastFired: appData.notifications?.lastFired || {} };
   if (!saveOrRollback(before)) return;
   if (st) st.innerText = `✅ مفعّل (صباح ${m}، مساء ${e})`;
   await scheduleDailyNotifications();
   showToast('🔔 تم التفعيل.');
 }
 async function scheduleDailyNotifications() {
-  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return false;
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
   const n = appData.notifications;
-  if (!n || !n.enabled) return false;
+  if (!n || !n.enabled) return;
 
   try {
     const { LocalNotifications } = Capacitor.Plugins;
     const perm = await LocalNotifications.requestPermissions();
-    if (perm.display !== 'granted') return false;
+    if (perm.display !== 'granted') return;
 
-    // ألغِ إشعارات هذا التطبيق فقط؛ لا تمسح إشعارات أخرى مجدولة من وحدات أخرى.
-    try {
-      const pending = await LocalNotifications.getPending();
-      const ours = (pending?.notifications || []).filter(item => [1001, 1002].includes(item.id));
-      if (ours.length) await LocalNotifications.cancel({ notifications: ours.map(item => ({ id: item.id })) });
-    } catch (_) { /* يمكن متابعة الجدولة حتى إن تعذّر فحص المعلّق */ }
+    await LocalNotifications.cancel({ notifications: [{ id: 1001 }, { id: 1002 }] });
 
     const [mH, mM] = n.morning.split(':').map(Number);
     const [eH, eM] = n.evening.split(':').map(Number);
@@ -1767,6 +1990,7 @@ async function scheduleDailyNotifications() {
           title: '☀️ وقت المشارطة',
           body: 'اشرط على نفسك حفظ اليوم.',
           schedule: { on: { hour: mH, minute: mM }, repeats: true, allowWhileIdle: true },
+          // smallIcon removed: using launcher icon
           iconColor: '#0d261e'
         },
         {
@@ -1774,17 +1998,17 @@ async function scheduleDailyNotifications() {
           title: '🌙 وقت المحاسبة',
           body: 'افتح خزائن أوقاتك الـ24.',
           schedule: { on: { hour: eH, minute: eM }, repeats: true, allowWhileIdle: true },
+          // smallIcon removed: using launcher icon
           iconColor: '#0d261e'
         }
       ]
     });
     console.log('✅ تمت جدولة الإشعارات اليومية.');
-    return true;
   } catch (err) {
     console.warn('تعذّرت جدولة الإشعارات:', err);
-    return false;
   }
 }
+
 
 async function checkAndFireNotifications() {
   // في Capacitor: الجدولة الأصلية تتولى الإشعارات. لا داعي للتكرار.
@@ -1796,25 +2020,43 @@ async function checkAndFireNotifications() {
   const hhmm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   const today = currentDayKey();
   n.lastFired = n.lastFired || {};
-  if (n.morning && n.lastFired.morning !== today && withinWindow(hhmm, n.morning, 2)) {
+  // إعادة تعيين lastFired إذا كان مستقبليًا (قفزة ساعة)
+  if (n.lastFired.morning && n.lastFired.morning > today) n.lastFired.morning = null;
+  if (n.lastFired.evening && n.lastFired.evening > today) n.lastFired.evening = null;
+  const silentSave = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (_) {} };
+  if (n.morning && n.lastFired.morning !== today && pastTimeWithin(hhmm, n.morning, 6)) {
     if (await showAppNotification('☀️ وقت المشارطة', 'اشرط على نفسك حفظ اليوم.', 'muhasabah-morning')) {
       appData.notifications.lastFired.morning = today;
-      save();
-      return;
+      silentSave();
+      // h7-19: بلا return — يفحص المساء في نفس الدورة
     }
   }
-  if (n.evening && n.lastFired.evening !== today && withinWindow(hhmm, n.evening, 2)) {
-    if (await showAppNotification('🌙 وقت المحاسبة', 'افتح خزائن أوقاتك الـ24.', 'muhasabah-evening')) {
-      appData.notifications.lastFired.evening = today;
-      save();
-      return;
+  if (n.evening) {
+    const [ch] = hhmm.split(':').map(Number);
+    const [th] = n.evening.split(':').map(Number);
+    const isLateNight = ch < th;
+    const targetDay = isLateNight ? yesterdayISO() : today;
+    let diff = (ch * 60 + Number(hhmm.split(':')[1])) - (th * 60 + Number(n.evening.split(':')[1]));
+    if (diff < 0) diff += 1440;
+    if (n.lastFired.evening !== targetDay && diff <= 4 * 60) {
+      if (await showAppNotification('🌙 وقت المحاسبة', 'افتح خزائن أوقاتك الـ24.', 'muhasabah-evening')) {
+        appData.notifications.lastFired.evening = targetDay;
+        silentSave();
+        return;
+      }
     }
   }
 }
 
 /* ═══════════════════════ التصدير والاستيراد ═══════════════════════ */
 function exportData() {
-  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  let recoveryRaw = null;
+  try { recoveryRaw = localStorage.getItem(STORAGE_KEY + '_recovery_backup'); } catch (_) {}
+  const payload = {
+    appData,
+    recoveryBackup: recoveryRaw || null
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1823,148 +2065,37 @@ function exportData() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast("📤 تم التصدير.");
 }
-
-/* ═══════════════════════ تصدير CSV ═══════════════════════ */
-function csvEscape(v) {
-  if (v === null || v === undefined) return '';
-  let value = String(v);
-  // لا تسمح لخلايا نصية أن تُفسَّر كصيغة عند فتح CSV في Excel/Sheets.
-  if (/^[\s\u0000-\u001F]*[=+@\-]/.test(value)) value = "'" + value;
-  return '"' + value.replace(/"/g, '""') + '"';
-}
-
-function buildCSVRow(cells) {
-  return cells.map(csvEscape).join(',');
-}
-
-function exportCSV() {
-  /* اليوم الحالي */
-  const todayItem = {
-    date: currentDayKey(),
-    lights: appData.lights,
-    darks: appData.darks,
-    empties: appData.empties,
-    mujahadahCount: Object.values(appData.mujahadah || {}).filter(Boolean).length,
-    mujahadahTotal: MUJAHADAH_KEYS.length + Object.keys(appData.mujahadah || {}).filter(isCustomTaskKey).length,
-    mujahadah: appData.mujahadah || {},
-    musharatah: appData.musharatah || {},
-    muhasabah: appData.muhasabah || {},
-    muatabah: appData.muatabah || {}
-  };
-
-  /* كل السجل + اليوم */
-  const allDays = [todayItem, ...(appData.history || [])];
-
-  /* حذف الأيام الفارغة تمامًا */
-  const meaningful = allDays.filter(d =>
-    (d.lights || 0) + (d.darks || 0) + (d.empties || 0) > 0 ||
-    !!d.mujahadahCount || Object.values(d.mujahadah || {}).some(Boolean) ||
-    !!d.musharatah?.intention || !!d.musharatah?.limbs?.length ||
-    !!d.muhasabah?.why || !!d.muhasabah?.how || !!d.muhasabah?.whom ||
-    !!d.muatabah?.note || !!d.muatabah?.correctionAction
-  );
-
-  if (!meaningful.length) {
-    return showToast('⚠️ لا توجد بيانات لتصديرها بعد.');
-  }
-
-  /* العنوان */
-  const header = [
-    'التاريخ (ميلادي)',
-    'التاريخ (هجري)',
-    'طاعة',
-    'معصية',
-    'غفلة',
-    'إجمالي مُصنّف',
-    'نسبة الطاعة %',
-    'المجاهدة',
-    'نية اليوم',
-    'الأعضاء المعاهدة',
-    'ديوان لِمَ',
-    'ديوان كيف',
-    'ديوان لِمَنْ',
-    'المعاتبة',
-    'المعاقبة'
-  ];
-
-  /* الصفوف */
-  const rows = meaningful.map(d => {
-    const total = (d.lights || 0) + (d.darks || 0) + (d.empties || 0);
-    const pct = total > 0 ? Math.round((d.lights / total) * 100) : 0;
-    const mujText = (d.mujahadahCount || 0) + '/' + (d.mujahadahTotal || MUJAHADAH_KEYS.length);
-    return [
-      d.date,
-      formatArabicDate(d.date),
-      d.lights || 0,
-      d.darks || 0,
-      d.empties || 0,
-      total,
-      pct,
-      mujText,
-      d.musharatah?.intention || '',
-      (d.musharatah?.limbs || []).join('، '),
-      d.muhasabah?.why || '',
-      d.muhasabah?.how || '',
-      d.muhasabah?.whom || '',
-      d.muatabah?.note || '',
-      d.muatabah?.correctionAction || ''
-    ];
-  });
-
-  /* BOM لضمان قراءة Excel للنص العربي */
-  const csv = '\ufeff' + [header, ...rows].map(buildCSVRow).join('\n');
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `muhasabah_${currentDayKey()}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-  showToast('📊 تم تصدير ' + meaningful.length + ' يومًا إلى CSV.');
-}
 function importData(event) {
-  const input = event.target;
-  const file = input.files?.[0];
+  const file = event.target.files?.[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    input.value = '';
-    return showToast("⚠️ الملف كبير جدًا.");
+  if (file.size > 2 * 1024 * 1024) return showToast("⚠️ الملف كبير جدًا.");
+  if (!confirm('سيستبدل الاستيراد كل بياناتك الحالية. هل أنت متأكد؟')) {
+    event.target.value = ''; return;
   }
-
-  showConfirmModal(
-    '📥 استيراد نسخة احتياطية',
-    'سيستبدل الاستيراد <b>كل بياناتك الحالية</b>.<br>هل أنت متأكد؟',
-    function() {
-      const fr = new FileReader();
-      fr.onload = () => {
-        try {
-          const raw = JSON.parse(String(fr.result || ''));
-          const imported = validateImport(raw);
-          const previous = appData;
-          appData = imported;
-          if (!save()) { appData = previous; input.value = ''; return; }
-          updateDisplay(); restoreFormState();
-          if (appData.birthYear) calculateLife(false);
-          showToast('📥 تم الاستيراد بنجاح.');
-        } catch (err) {
-          console.error('فشل استيراد البيانات:', err);
-          showToast('⚠️ الملف غير صالح أو لا يخص التطبيق؛ لم تُغيّر بياناتك.');
-        } finally {
-          input.value = '';
-        }
-      };
-      fr.onerror = () => { showToast('⚠️ تعذّرت قراءة الملف.'); input.value = ''; };
-      fr.readAsText(file, 'UTF-8');
-    },
-    function() {
-      /* إلغاء → امسح الحقل */
-      input.value = '';
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const raw = JSON.parse(String(fr.result || ''));
+      const sourceObj = (raw && typeof raw === 'object' && raw.appData && typeof raw.appData === 'object') ? raw.appData : raw;
+      const imported = validateImport(sourceObj);
+      if (raw && typeof raw === 'object' && typeof raw.recoveryBackup === 'string') {
+        try { localStorage.setItem(STORAGE_KEY + '_recovery_backup', raw.recoveryBackup); } catch (_) {}
+      }
+      const previous = appData;
+      appData = imported;
+      if (!save()) { appData = previous; return; }
+      updateDisplay(); restoreFormState();
+      if (appData.birthYear) calculateLife(false);
+      showToast('📥 تم الاستيراد بنجاح.');
+    } catch (err) {
+      console.error('فشل استيراد البيانات:', err);
+      showToast('⚠️ الملف غير صالح أو لا يخص التطبيق؛ لم تُغيّر بياناتك.');
+    } finally {
+      event.target.value = '';
     }
-  );
+  };
+  fr.onerror = () => { showToast('⚠️ تعذّرت قراءة الملف.'); event.target.value = ''; };
+  fr.readAsText(file, 'UTF-8');
 }
 
 /* ═══════════════════════ Toast ═══════════════════════ */
@@ -1976,156 +2107,11 @@ function showToast(msg) {
   t.setAttribute('role', 'status');
   t.setAttribute('aria-live', 'polite');
   t.setAttribute('aria-atomic', 'true');
+  t.style.pointerEvents = 'none';
   t.innerText = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
-
-/* ═══════════════════════ Modal موحّد ═══════════════════════ */
-let _modalKeyHandler = null;
-let _modalCancelCallback = null;
-
-function closeModal() {
-  const overlay = document.getElementById('customModalOverlay');
-  if (overlay) overlay.classList.add('hidden');
-  if (_modalKeyHandler) {
-    document.removeEventListener('keydown', _modalKeyHandler);
-    _modalKeyHandler = null;
-  }
-  _modalCancelCallback = null;
-}
-
-/* sanitizeModalHtml: يسمح بوسوم آمنة فقط، ويهرّب كل ما عداها */
-function sanitizeModalHtml(html) {
-  const safe = /^<\/?(br|b|i|small|hr|p|span|strong|em)\s*\/?>$/i;
-  return String(html).replace(/<[^>]+>/g, function(tag) {
-    return safe.test(tag) ? tag : '&lt;' + tag.slice(1, -1) + '&gt;';
-  });
-}
-
-function showAlertModal(title, htmlText) {
-  const overlay = document.getElementById('customModalOverlay');
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalBody').innerHTML =
-    '<p>' + sanitizeModalHtml(htmlText) + '</p>';
-  document.getElementById('modalFooter').innerHTML =
-    '<button class="modal-btn-primary" id="modalOkBtn">حسنًا</button>';
-  document.getElementById('modalOkBtn').onclick = closeModal;
-  overlay.classList.remove('hidden');
-
-  if (_modalKeyHandler) document.removeEventListener('keydown', _modalKeyHandler);
-  _modalKeyHandler = function(e) {
-    if (e.key === 'Escape' || e.key === 'Enter') {
-      e.preventDefault();
-      closeModal();
-    }
-  };
-  document.addEventListener('keydown', _modalKeyHandler);
-
-  setTimeout(() => {
-    const b = document.getElementById('modalOkBtn');
-    if (b) b.focus();
-  }, 100);
-}
-
-function showConfirmModal(title, htmlText, onConfirm, onCancel) {
-  const overlay = document.getElementById('customModalOverlay');
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalBody').innerHTML =
-    '<p>' + sanitizeModalHtml(htmlText) + '</p>';
-  document.getElementById('modalFooter').innerHTML =
-    '<button class="modal-btn-ghost" id="modalCancelBtn">إلغاء</button>' +
-    '<button class="modal-btn-danger" id="modalConfirmBtn">تأكيد</button>';
-
-  _modalCancelCallback = onCancel || null;
-
-  document.getElementById('modalCancelBtn').onclick = function() {
-    const cb = _modalCancelCallback;
-    closeModal();
-    if (cb) cb();
-  };
-  document.getElementById('modalConfirmBtn').onclick = function() {
-    closeModal();
-    if (onConfirm) onConfirm();
-  };
-
-  overlay.classList.remove('hidden');
-
-  if (_modalKeyHandler) document.removeEventListener('keydown', _modalKeyHandler);
-  _modalKeyHandler = function(e) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      document.getElementById('modalCancelBtn').click();
-    }
-  };
-  document.addEventListener('keydown', _modalKeyHandler);
-
-  setTimeout(() => {
-    const b = document.getElementById('modalConfirmBtn');
-    if (b) b.focus();
-  }, 100);
-}
-
-function showPromptModal(title, htmlText, defaultValue, placeholder, onSubmit, onCancel) {
-  const overlay = document.getElementById('customModalOverlay');
-  document.getElementById('modalTitle').textContent = title;
-
-  const bodyEl = document.getElementById('modalBody');
-  bodyEl.innerHTML = '';
-  const p = document.createElement('p');
-  p.innerHTML = sanitizeModalHtml(htmlText);
-  bodyEl.appendChild(p);
-
-  const inputEl = document.createElement('input');
-  inputEl.type = 'text';
-  inputEl.id = 'modalPromptInput';
-  inputEl.value = (defaultValue !== null && defaultValue !== undefined) ? String(defaultValue) : '';
-  if (placeholder) inputEl.placeholder = placeholder;
-  bodyEl.appendChild(inputEl);
-
-  const footerEl = document.getElementById('modalFooter');
-  footerEl.innerHTML = '';
-  const cancelBtn = document.createElement('button');
-  cancelBtn.className = 'modal-btn-ghost';
-  cancelBtn.textContent = 'إلغاء';
-  const submitBtn = document.createElement('button');
-  submitBtn.className = 'modal-btn-primary';
-  submitBtn.textContent = 'تأكيد';
-  footerEl.appendChild(cancelBtn);
-  footerEl.appendChild(submitBtn);
-
-  setTimeout(() => { inputEl.focus(); inputEl.select(); }, 100);
-
-  _modalCancelCallback = onCancel || null;
-  cancelBtn.onclick = function() {
-    const cb = _modalCancelCallback;
-    closeModal();
-    if (cb) cb();
-  };
-  submitBtn.onclick = function() {
-    const val = inputEl.value;
-    closeModal();
-    if (onSubmit) onSubmit(val);
-  };
-
-  overlay.classList.remove('hidden');
-
-  if (_modalKeyHandler) document.removeEventListener('keydown', _modalKeyHandler);
-  _modalKeyHandler = function(e) {
-    if (e.key === 'Escape') { e.preventDefault(); cancelBtn.click(); }
-    else if (e.key === 'Enter') { e.preventDefault(); submitBtn.click(); }
-  };
-  document.addEventListener('keydown', _modalKeyHandler);
-}
-
-/* النقر على الخلفية يُغلق النافذة */
-document.getElementById('customModalOverlay').addEventListener('mousedown', function(e) {
-  if (e.target !== this) return;
-  if (this.classList.contains('hidden')) return;
-  const cancelBtn = document.getElementById('modalCancelBtn');
-  if (cancelBtn) cancelBtn.click();
-  else closeModal();
-});
 
 function exportRecoveryBackup() {
   let raw = null;
@@ -2169,6 +2155,44 @@ function showRecoveryPanel() {
   document.body.appendChild(panel);
 }
 
+/* ═══════════════════════ وضع الخصوصية ═══════════════════════ */
+(function initPrivacyToggle(){
+  const btn = document.getElementById('privacy-toggle-btn');
+  if (!btn) return;
+  function syncPrivacyUI(){
+    const on = document.body.classList.contains('privacy-shield');
+    btn.textContent = on ? '🔒' : '👁️';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = on ? 'إيقاف وضع الخصوصية' : 'تفعيل وضع الخصوصية';
+  }
+  syncPrivacyUI();
+  btn.addEventListener('click', () => {
+    const on = !document.body.classList.contains('privacy-shield');
+    document.body.classList.toggle('privacy-shield', on);
+    try { localStorage.setItem('ihya_privacy', on ? '1' : '0'); } catch (_) {}
+    syncPrivacyUI();
+  });
+})();
+
+/* ═══════════════════════ وضع ليلي ═══════════════════════ */
+(function initDarkToggle(){
+  const btn = document.getElementById('dark-toggle-btn');
+  if (!btn) return;
+  function syncDarkUI(){
+    const on = document.body.classList.contains('dark');
+    btn.textContent = on ? '🕯️' : '☀️';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = on ? 'إيقاف الخلوة' : 'تفعيل الخلوة';
+  }
+  syncDarkUI();
+  btn.addEventListener('click', () => {
+    const on = !document.body.classList.contains('dark');
+    document.body.classList.toggle('dark', on);
+    try { localStorage.setItem('ihya_dark', on ? '1' : '0'); } catch (_) {}
+    syncDarkUI();
+  });
+})();
+
 /* ═══════════════════════ PWA ═══════════════════════ */
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -2193,59 +2217,259 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-/* ✅ حماية الحقول غير المحفوظة قبل الخروج */
-function hasUnsavedChanges() {
-  const drafts = collectUnsavedControls();
-  return Object.keys(drafts).some(key => {
-    if (key === 'text') return Object.keys(drafts.text || {}).length > 0;
-    return true;
-  });
-}
-
-window.addEventListener('beforeunload', function(e) {
-  if (!hasUnsavedChanges()) return;
-  e.preventDefault();
-  e.returnValue = '';
-  return '';
+/* ═══════════════════════ الإقلاع ═══════════════════════ */
+// 🔄 تزامن بين التبويبات: عند تعديل البيانات من تبويب آخر
+window.addEventListener('storage', (e) => {
+  if (e.key !== STORAGE_KEY || !e.newValue) return;
+  try {
+    appData = validateImport(JSON.parse(e.newValue));
+    updateDisplay();
+    restoreFormState();
+    if (appData.birthYear) calculateLife(false);
+    showToast('🔄 تم تحديث البيانات من تبويب آخر.');
+  } catch (err) {
+    console.warn('storage event: فشل تحديث البيانات:', err);
+  }
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    if (rolloverIfNeeded()) updateDisplay();
+    checkAndFireNotifications();
+  } else {
+    // 🆕 الصفحة تُخفى (تبويب آخر أو إغلاق): حفظ احترازي أخير
+    try {
+      if (ensureCurrentDay()) autoPersist();
+    } catch (err) {
+      console.warn('visibilitychange: تعذّر الحفظ الاحترازي:', err);
+    }
+  }
+});
+window.addEventListener('pagehide', () => {
+  // 🆕 قبل إغلاق الصفحة أو التنقل بعيدًا: حفظ احترازي أخير
+  try {
+    if (ensureCurrentDay()) autoPersist();
+  } catch (err) {
+    console.warn('pagehide: تعذّر الحفظ الاحترازي:', err);
+  }
+});
+window.addEventListener('focus', () => {
+  if (rolloverIfNeeded()) updateDisplay();
 });
 
 window.addEventListener('load', () => {
   rolloverIfNeeded();
   restoreFormState();
   updateDisplay();
-  checkStorageQuota();
   rotateQuote();
   renderLibrary();
   if (appData.birthYear) calculateLife(false);
   checkAndFireNotifications();
   if (storageRecoveryWarning) showRecoveryPanel();
-  setInterval(checkAndFireNotifications, 60000);
   setInterval(() => {
     if (rolloverIfNeeded()) { updateDisplay(); }
+    checkAndFireNotifications();
   }, 60000);
 });
 
-/* ✅ التعامل مع زر الرجوع في أندرويد (Capacitor) */
-if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-  const CapApp = Capacitor.Plugins.App;
-  if (CapApp && typeof CapApp.addListener === 'function') {
-    CapApp.addListener('backButton', () => {
-      const visibleTab = document.querySelector('.tab-content:not(.hidden)');
-      const isOnMainTab = visibleTab && visibleTab.id === 'tab-musharatah';
-      const panel = document.getElementById('storage-recovery-panel');
-
-      if (panel) { panel.remove(); return; }
-
-      if (!isOnMainTab) { switchTab('musharatah'); return; }
-
-      if (typeof CapApp.minimizeApp === 'function') {
-        CapApp.minimizeApp();
-      } else if (typeof CapApp.exitApp === 'function') {
-        CapApp.exitApp();
-      }
+// ⌨️ تنقل بلوحة المفاتيح في شبكة الساعات (Arrow keys)
+(function initHourGridKeyboard() {
+  const grid = document.getElementById('hours-grid-parent');
+  if (!grid) return;
+  grid.addEventListener('keydown', (e) => {
+    const focused = document.activeElement;
+    if (!focused || !focused.classList.contains('hour-cell')) return;
+    const label = focused.getAttribute('aria-label') || '';
+    const m = label.match(/\d+/);
+    if (!m) return;
+    const i = parseInt(m[0], 10);
+    let target = null;
+    if (e.key === 'ArrowRight') target = (i + 1) % 24;
+    else if (e.key === 'ArrowLeft') target = (i + 23) % 24;
+    else if (e.key === 'ArrowDown') target = (i + 6) % 24;
+    else if (e.key === 'ArrowUp') target = (i + 18) % 24;
+    else return;
+    e.preventDefault();
+    const next = grid.querySelector(`.hour-cell[aria-label^="الساعة ${String(target).padStart(2,'0')}"]`);
+    if (next) next.focus();
+  });
+})();
+</script>
+<div id="print-report" style="direction: rtl; font-family: 'Amiri', 'Cairo', 'Noto Naskh Arabic', serif;"></div>
+<script>
+(function() {
+  var _esc = function(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
     });
+  };
+  var _formatDate = function() {
+    try {
+      if (typeof window.formatArabicDate === 'function' && typeof window.currentDayKey === 'function') {
+        return window.formatArabicDate(window.currentDayKey());
+      }
+      return new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    } catch (e) { return new Date().toLocaleDateString('ar-EG'); }
+  };
+  var _dayKey = function() {
+    try {
+      return (typeof window.currentDayKey === 'function') ? window.currentDayKey() : new Date().toISOString().slice(0, 10);
+    } catch (e) { return new Date().toISOString().slice(0, 10); }
+  };
+
+  function buildReportHTML() {
+    // polish-05: tdz protected
+    var A = {};
+    try { if (typeof appData !== 'undefined' && appData) A = appData; } catch (_) {}
+    var date = _formatDate();
+    var hourCells = (A.hours || []).map(function(h, i) {
+      var label = { light: 'طاعة', dark: 'معصية', empty: 'غفلة' }[h] || '—';
+      return '<span style="display:inline-block;padding:2px 6px;margin:1px;border:1px solid #ccc;font-size:10px">' + String(i).padStart(2, '0') + ': ' + label + '</span>';
+    }).join('');
+    var _m = A.muhasabah || {};
+    var _stanceLabel = { hope: '🌿 أرجو القبول وأحمد الله', repentance: '🤲 أستغفر الله وأتوب إليه', remedy: '🛠️ أحتاج إلى تدارك وإصلاح' }[_m.stance] || '';
+    var _hasDiwan = _m.why || _m.how || _m.whom || _m.stance;
+    var diwanCards = _hasDiwan
+      ? ('<div style="border:1px solid #d4af37;padding:8px;margin:6px 0;border-radius:6px">' +
+          (_m.why ? '<div><b>لِمَ:</b> ' + _esc(_m.why) + '</div>' : '') +
+          (_m.how ? '<div><b>كيف:</b> ' + _esc(_m.how) + '</div>' : '') +
+          (_m.whom ? '<div><b>لِمَن:</b> ' + _esc(_m.whom) + '</div>' : '') +
+          (_stanceLabel ? '<div style="color:#8b0000;margin-top:4px"><b>الموقف:</b> ' + _esc(_stanceLabel) + '</div>' : '') +
+          '</div>')
+      : '<p style="color:#888">لم تُسجَّل محاسبة اليوم.</p>';
+    var vigilanceItems = (A.vigilanceLog || []).map(function(x) {
+      return '<div style="border-right:2px solid #6ee7b7;padding-right:6px;margin:2px 0">' + _esc(x.text || '') + '</div>';
+    }).join('') || '<p style="color:#888">—</p>';
+    var mujahadahStr = Object.entries(A.mujahadah || {}).map(function(kv) {
+      return (kv[1] ? '✔' : '✘') + ' ' + _esc(kv[0]);
+    }).join(' • ') || '—';
+
+    return '<div style="max-width:180mm;margin:0 auto;padding:6mm;color:#000">' +
+      '<h1 style="text-align:center;font-size:22pt;border-bottom:2px solid #d4af37;padding-bottom:6mm">إقرار محاسبة النفس</h1>' +
+      '<p style="text-align:center;color:#555">' + _esc(date) + ' — ' + _esc(_dayKey()) + '</p>' +
+      '<h2 style="color:#0d261e;border-right:4px solid #d4af37;padding-right:6px;margin-top:10mm">المقام الأول — المشارطة</h2>' +
+      '<p><b>النية:</b> ' + _esc((A.musharatah || {}).intention || '—') + '</p>' +
+      '<p><b>الجوارح:</b> ' + (function() {
+        var VALID_LIMBS = ['العين', 'الأذن', 'اللسان', 'البطن', 'الفرج', 'اليد', 'الرجل', 'القلب'];
+        var safe = ((A.musharatah || {}).limbs || []).filter(function(l) { return VALID_LIMBS.indexOf(l) !== -1; });
+        return safe.map(_esc).join(' • ') || '—';
+      })() + '</p>' +
+      '<h2 style="color:#0d261e;border-right:4px solid #d4af37;padding-right:6px;margin-top:10mm">المقام الثاني — المراقبة</h2>' +
+      '<p><b>لحظات اليقظة:</b></p>' + vigilanceItems +
+      '<h2 style="color:#0d261e;border-right:4px solid #d4af37;padding-right:6px;margin-top:10mm">المقام الثالث — المحاسبة</h2>' +
+      '<p><b>خزائن الساعات:</b></p>' +
+      '<div>' + hourCells + '</div>' +
+      '<p style="margin-top:6px"><b>إحصاء:</b> طاعة ' + (A.lights || 0) + ' • معصية ' + (A.darks || 0) + ' • غفلة ' + (A.empties || 0) + '</p>' +
+      '<p><b>الدواوين الثلاثة:</b></p>' + diwanCards +
+      '<h2 style="color:#0d261e;border-right:4px solid #d4af37;padding-right:6px;margin-top:10mm">المقام الرابع — المعاقبة</h2>' +
+      '<p>' + _esc((A.muatabah || {}).correctionAction || '—') + '</p>' +
+      '<h2 style="color:#0d261e;border-right:4px solid #d4af37;padding-right:6px;margin-top:10mm">المقام الخامس — المجاهدة</h2>' +
+      '<p>' + mujahadahStr + '</p>' +
+      '<h2 style="color:#0d261e;border-right:4px solid #d4af37;padding-right:6px;margin-top:10mm">المقام السادس — المعاتبة</h2>' +
+      '<p>' + _esc((A.muatabah || {}).note || '—') + '</p>' +
+      '<p style="text-align:center;color:#888;margin-top:15mm;font-size:9pt">— تقرير آلي من تطبيق محاسبة النفس —</p>' +
+      '</div>';
   }
-}
+
+  async function exportReportPDF() {
+    var reportDiv = document.getElementById('print-report');
+    if (!reportDiv) { if (window.showToast) window.showToast('⚠️ بنية التقرير مفقودة'); return; }
+    reportDiv.innerHTML = buildReportHTML();
+    reportDiv.style.display = 'block';
+    try {
+      await Promise.all([
+        document.fonts.ready,
+        document.fonts.load('16px Amiri'),
+        document.fonts.load('16px Cairo')
+      ]);
+    } catch (e) { /* تجاهل */ }
+    var cleaned = false;
+    var fallback;
+    var cleanup = function() {
+      if (cleaned) return;
+      cleaned = true;
+      clearTimeout(fallback);
+      reportDiv.style.display = 'none';
+      window.removeEventListener('afterprint', cleanup);
+    };
+    fallback = setTimeout(cleanup, 60000);
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.print();
+  }
+
+  function isShareAvailable() {
+    return !!navigator.share && window.isSecureContext && location.protocol !== 'file:';
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) { /* تجاهل */ }
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  async function shareReport() {
+    // lockdown-03: share formatted
+    var raw = buildReportHTML()
+      .replace(/<\/(h[1-4]|p|div)>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    var text = raw.split('\n').map(function(l){ return l.trim(); }).filter(Boolean).join('\n');
+    if (isShareAvailable()) {
+      try {
+        await navigator.share({ title: 'تقرير محاسبتي', text: text });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+    var ok = await copyToClipboard(text);
+    if (window.showToast) {
+      window.showToast(ok ? '📋 نُسخ التقرير — شاركه يدويًا' : '⚠️ تعذّرت المشاركة والنسخ', !ok);
+    }
+  }
+
+  window.buildReportHTML = buildReportHTML;
+  window.exportReportPDF = exportReportPDF;
+  window.shareReport = shareReport;
+  window.isShareAvailable = isShareAvailable;
+
+  function injectButtons() {
+    var historyTab = document.getElementById('tab-history');
+    if (!historyTab) return;
+    if (historyTab.querySelector('.h7-report-btn')) return;
+    var card = historyTab.querySelector('.bg-white') || historyTab;
+    var pdfBtn = document.createElement('button');
+    pdfBtn.className = 'w-full mt-2 bg-islamic-gold text-islamic-900 py-2 rounded-lg text-xs font-bold h7-report-btn';
+    pdfBtn.textContent = '🖨️ تصدير تقرير المحاسبة (PDF)';
+    pdfBtn.onclick = exportReportPDF;
+    card.appendChild(pdfBtn);
+    var shareBtn = document.createElement('button');
+    shareBtn.className = 'w-full mt-2 bg-slate-700 text-white py-2 rounded-lg text-xs font-semibold h7-report-btn';
+    shareBtn.textContent = '📤 مشاركة التقرير';
+    shareBtn.onclick = shareReport;
+    card.appendChild(shareBtn);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectButtons);
+  } else {
+    injectButtons();
+  }
+})();
 </script>
 </body>
 </html>
