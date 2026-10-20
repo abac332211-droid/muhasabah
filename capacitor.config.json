@@ -1,14 +1,13 @@
 {
-  "appId": "io.github.abac332211.muhasabah",
+  "appId": "com.abac332211.muhasabah",
   "appName": "محاسبة النفس",
   "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
   "android": {
     "allowMixedContent": false,
     "captureInput": true,
-    "webContentsDebuggingEnabled": false,
-    "backgroundColor": "#f8fafc"
-  },
-  "server": {
-    "androidScheme": "https"
+    "webContentsDebuggingEnabled": true
   }
 }
