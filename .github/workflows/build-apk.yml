@@ -11,7 +11,6 @@ on:
       - 'icon-*.png'
       - 'capacitor.config.json'
       - 'package.json'
-      - 'package-lock.json'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
@@ -32,17 +31,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      # ═══════════════════════════════════════════════════
-      # PRE-FLIGHT
-      # ═══════════════════════════════════════════════════
 
       - name: "Pre-flight: الملفات المطلوبة"
         run: |
@@ -52,15 +46,6 @@ jobs:
             if [ ! -f "$f" ]; then missing="$missing $f"; else echo "✅ $f"; fi
           done
           if [ -n "$missing" ]; then echo "❌ ملفات مفقودة:$missing"; exit 1; fi
-
-      - name: "Pre-flight: package-lock.json"
-        run: |
-          if [ -f "package-lock.json" ]; then
-            echo "✅ package-lock.json موجود — npm cache سيعمل"
-          else
-            echo "⚠️ package-lock.json مفقود — npm cache لن يعمل بفعالية"
-            echo "   نفّذ 'npm install' محليًا وارفع الملف لتفعيل cache"
-          fi
 
       - name: "Pre-flight: webDir = www"
         run: |
@@ -91,10 +76,6 @@ jobs:
           fi
           echo "✅ node_modules/@capacitor/android موجود"
 
-      # ═══════════════════════════════════════════════════
-      # BUILD: تحضير www
-      # ═══════════════════════════════════════════════════
-
       - name: Prepare www (fully offline)
         run: |
           set -euo pipefail
@@ -102,19 +83,17 @@ jobs:
           rm -rf www
           mkdir -p www
 
-          # ملفات مطلوبة (fail-fast)
           for f in index.html tailwind.css manifest.json; do
             [ -f "$f" ] || { echo "❌ مفقود: $f"; exit 1; }
-            cp "$f" www/; echo "✅ نُسخ: $f"
+            cp "$f" www/
+            echo "✅ نُسخ: $f"
           done
 
-          # ملفات اختيارية
           for f in sw.js icon-192.png icon-512.png icon-maskable-512.png; do
             if [ -f "$f" ]; then cp "$f" www/; echo "✅ نُسخ: $f"
             else echo "⚠️ اختياري مفقود: $f"; fi
           done
 
-          # الخطوط — فشل رحيم
           mkdir -p www/vendor
           FONTS_CSS="www/vendor/fonts.css"
           if curl -fsSL --max-time 30 \
@@ -127,7 +106,6 @@ jobs:
             : > "$FONTS_CSS"
           fi
 
-          # WOFF2
           font_ok=0
           if [ -s "$FONTS_CSS" ]; then
             grep -oE 'https://fonts\.gstatic\.com/[^)]+\.woff2' "$FONTS_CSS" \
@@ -145,12 +123,10 @@ jobs:
             sed -i -E 's|https://fonts\.gstatic\.com/[^)]+/([^/)]+)|./\1|g' "$FONTS_CSS"
           fi
 
-          # استبدال رابط Google Fonts (نمط مرن)
           if [ -s "$FONTS_CSS" ]; then
             sed -i -E 's|<link [^>]*fonts\.googleapis\.com/css2[^>]*>|<link rel="stylesheet" href="./vendor/fonts.css">|' www/index.html
           fi
 
-          # فحص استبدال الخطوط (لا يُفشل البناء — خطوط النظام كافية)
           font_refs=$(grep -c 'vendor/fonts.css' www/index.html || true)
           if [ "$font_refs" -eq 1 ]; then
             echo "✅ رابط الخطوط استُبدل بنجاح"
@@ -161,7 +137,6 @@ jobs:
             exit 1
           fi
 
-          # ═══ الفحوص القاتلة ═══
           echo "══════ فحص الحزمة النهائية ══════"
           [ -f "www/tailwind.css" ] || { echo "❌ tailwind.css مفقود من www/"; exit 1; }
           echo "✅ tailwind.css موجود ($(du -h www/tailwind.css | cut -f1))"
@@ -176,12 +151,10 @@ jobs:
             echo "❌ index.html ما زال يستدعي CDN"; exit 1
           fi
 
-          echo "══════ محتوى www/ ══════"; ls -la www/
-          echo "══════ محتوى www/vendor/ ══════"; ls -la www/vendor/ || true
-
-      # ═══════════════════════════════════════════════════
-      # ANDROID
-      # ═══════════════════════════════════════════════════
+          echo "══════ محتوى www/ ══════"
+          ls -la www/
+          echo "══════ محتوى www/vendor/ ══════"
+          ls -la www/vendor/ || true
 
       - name: Add Android platform (idempotent)
         run: |
@@ -202,7 +175,6 @@ jobs:
             echo "✅ اسم التطبيق محدَّث"
           fi
 
-          # الأيقونات — صيغة if/fi (محمية بنيويًّا)
           for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
             folder="android/app/src/main/res/mipmap-$d"
             [ -d "$folder" ] || continue
